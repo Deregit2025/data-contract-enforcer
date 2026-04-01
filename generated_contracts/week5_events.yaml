@@ -1,0 +1,2344 @@
+apiVersion: v3.0.0
+id: week5-event-sourcing-platform
+info:
+  description: Auto-generated contract for Week 5 Event Sourcing Platform — Event
+    Records. Generated at 2026-04-01T02:59:52.507749+00:00.
+  owner: week5
+  title: Week 5 Event Sourcing Platform — Event Records
+  version: 1.0.0
+kind: DataContract
+lineage:
+  downstream:
+  - breaking_if_changed:
+    - event_type
+    - sequence_number
+    description: Enforcer validates event payloads against registered schemas
+    fields_consumed:
+    - event_type
+    - payload
+    - sequence_number
+    id: week8-contract-enforcer
+  upstream: []
+llm_annotations:
+  aggregate_id:
+    business_rule: Must be a valid UUID format (version 5 indicated by '5' in third
+      segment); cannot be null; must be immutable once created
+    cross_column_relationship: Groups events by aggregate instance when combined with
+      sequence_number; must correspond to the aggregate_type column to ensure event
+      belongs to correct entity type; all events with same aggregate_id form an ordered
+      stream via sequence_number
+    description: Unique identifier for the aggregate entity that the event belongs
+      to, representing the stream of events for a specific business object instance
+      in the event sourcing pattern
+  aggregate_type:
+    business_rule: value must be a non-empty string; should match a valid aggregate
+      type from the domain model
+    cross_column_relationship: works with aggregate_id to uniquely identify the aggregate
+      instance; sequence_number orders events within the same aggregate_type and aggregate_id
+      combination
+    description: The type or category of domain aggregate that this event is associated
+      with, representing the business entity being tracked in the event sourcing system
+  event_type:
+    business_rule: value must be non-null string in PascalCase format representing
+      a past-tense domain event name; must be from predefined set of valid event types
+      for the aggregate_type
+    cross_column_relationship: must be a valid event type for the corresponding aggregate_type;
+      each event_type should have a corresponding event_id that uniquely identifies
+      the event occurrence
+    description: The type or category of domain event that occurred within the event
+      sourcing system, representing a state change or significant action in the business
+      process lifecycle
+  metadata_correlation_id:
+    business_rule: Must be a valid UUID (RFC 4122 format) in lowercase with hyphens;
+      cannot be null or empty
+    cross_column_relationship: Should align with metadata_source_service to track
+      event flows; may appear multiple times across records to link related events;
+      correlates with payload_application_reference for end-to-end transaction tracing
+    description: Unique identifier used to correlate and trace related events across
+      distributed systems and services in the event sourcing platform
+  metadata_source_service:
+    business_rule: value must be a non-empty string matching the pattern of service
+      identifiers; appears to be constant value 'week5-event-sourcing-platform' for
+      this dataset
+    cross_column_relationship: part of metadata group alongside metadata_correlation_id
+      and metadata_user_id; used with occurred_at for event traceability and audit
+      trail
+    description: Identifies the source service or platform that generated the event,
+      used for tracking event origin in the event sourcing system
+  metadata_user_id:
+    business_rule: value must be non-empty string; follows pattern 'COMP-XXX' for
+      component/user identifiers or 'system' for automated system events
+    cross_column_relationship: should be consistent with metadata_source_service context;
+      when value is 'system', typically correlates with automated event types in payload_application_reference
+    description: Identifier of the user or system actor who triggered or created the
+      event, used for audit trail and tracking purposes
+  payload_adverse_action_notice_required:
+    business_rule: value must be boolean (True/False); should be True when payload_declined_by
+      is not null
+    cross_column_relationship: typically True when payload_declined_at is populated;
+      should align with payload_declined_by indicating a rejection occurred; may trigger
+      payload_remediation_available options
+    description: Boolean flag indicating whether an adverse action notice is legally
+      required to be sent to the applicant following a negative decision or action
+      taken against them, typically in credit, employment, or housing decisions
+  payload_agent_id:
+    business_rule: value must be non-null string following pattern 'doc-agent-{number}'
+      or similar agent naming convention
+    cross_column_relationship: should correspond to a valid agent of the type specified
+      in payload_agent_type; may be associated with specific payload_model_version
+      and payload_langgraph_graph_version combinations
+    description: Unique identifier for the agent that generated or processed the event,
+      typically representing a document processing agent instance
+  payload_agent_type:
+    business_rule: value must be a non-empty string from a predefined set of agent
+      types; must be lowercase with underscore separators
+    cross_column_relationship: relates to payload_agent_id which identifies the specific
+      agent instance; may be grouped with payload_model_version to determine agent
+      capabilities; should be consistent across events with the same payload_session_id
+    description: Type or category of the agent that generated or processed the event,
+      indicating the functional role of the agent in the system workflow
+  payload_all_analyses_complete:
+    business_rule: value must be a boolean (True/False); required field
+    cross_column_relationship: when True, payload_overall_verdict and payload_confidence
+      should be populated; typically evaluated after payload_has_hard_block determination
+    description: Boolean flag indicating whether all analyses in the payload have
+      been completed for this event
+  payload_analysis_duration_ms:
+    business_rule: value must be a positive number (float or integer) greater than
+      0, typically between 1 and 300000 (5 minutes)
+    cross_column_relationship: should only be populated when payload_triggered_by_event_id
+      is not null, indicating an analysis was actually performed; likely correlates
+      with complexity indicated by payload_screening_model_version
+    description: Duration in milliseconds taken to complete the analysis of the event
+      payload, measuring the time elapsed from analysis start to completion
+  payload_anomalies_found:
+    business_rule: value must be a non-negative integer (>= 0)
+    cross_column_relationship: typically correlates with payload_fraud_score and payload_risk_level;
+      higher anomaly counts should correspond to higher fraud scores and elevated
+      risk levels
+    description: Number of anomalies detected in the payload during fraud or risk
+      assessment processing
+  payload_applicant_id:
+    business_rule: Must follow pattern 'COMP-' followed by 3 digits (000-999), non-null,
+      alphanumeric format
+    cross_column_relationship: Links to payload_application_id as foreign key relationship;
+      one applicant can have multiple applications; must exist before application_id
+      is created
+    description: Unique identifier for the applicant or company submitting the loan
+      application, using a standardized COMP prefix format
+  payload_application_id:
+    business_rule: Must follow format 'APEX-' followed by a 4-digit zero-padded numeric
+      identifier (e.g., APEX-0001); must be non-null and unique per application
+    cross_column_relationship: Should have a one-to-many relationship with sequence_number
+      (multiple events per application); may correlate with payload_applicant_id (one
+      applicant can have multiple applications); serves as part of the event aggregate
+      identification along with aggregate_type
+    description: Unique identifier for the application submitted within the event
+      sourcing system, used to track and reference specific application instances
+      throughout their lifecycle
+  payload_application_reference:
+    business_rule: Must follow pattern 'APEX-' followed by a 4-digit zero-padded sequential
+      number (e.g., APEX-0001 to APEX-9999)
+    cross_column_relationship: Links to the specific application instance referenced
+      by payload_contact_name; should be unique per submission event tracked by payload_submitted_at
+    description: A unique reference identifier for the application being processed,
+      following the APEX numbering scheme
+  payload_approved_amount_usd:
+    business_rule: value must be a non-negative numeric value (float or decimal) representing
+      USD currency; typically greater than 0 when an approval exists
+    cross_column_relationship: likely corresponds to payload_confidence level and
+      payload_executive_summary content; may be null if no approval has been granted
+      or if the event type does not involve monetary approval
+    description: The approved amount in US dollars for the payload transaction or
+      request, representing the monetary value that has been authorized or validated
+  payload_approved_by:
+    business_rule: value must be non-null string; typically 'auto' for system approvals
+      or user identifier for manual approvals
+    cross_column_relationship: should have corresponding timestamp in payload_approved_at
+      column; if approved_by is populated, approved_at must also be populated
+    description: Identifier of the entity or system that approved the payload, with
+      'auto' indicating automatic system approval rather than manual human approval
+  payload_auditor_notes:
+    business_rule: must be non-empty string when payload_is_coherent is true; should
+      document specific findings about financial statement consistency, balance sheet
+      validation, and revenue pattern analysis
+    cross_column_relationship: populated when payload_is_coherent indicates review
+      occurred; may influence payload_reextraction_recommended decision; timestamp
+      should align with payload_assessed_at; scope relates to payload_documents_processed
+      count
+    description: Free-text notes recorded by an auditor regarding the quality, consistency,
+      and validation of financial statements extracted from documents, including observations
+      about balance sheet accuracy and revenue trends
+  payload_confidence:
+    business_rule: value must be a decimal number between 0.0 and 1.0 inclusive
+    cross_column_relationship: likely correlates with payload_all_analyses_complete
+      status; may influence whether payload_approved_amount_usd requires additional
+      review
+    description: A confidence score representing the reliability or certainty level
+      of the event payload data, expressed as a decimal probability value between
+      0 and 1
+  payload_contact_email:
+    business_rule: Must be a valid email format containing '@' symbol and domain;
+      not null; should match standard email regex pattern
+    cross_column_relationship: Associated with payload_contact_name which likely contains
+      the name of the person owning this email; part of contact information group
+      within the payload
+    description: Email address of the contact person associated with the event payload,
+      used for communication regarding loan applications or submissions
+  payload_contact_name:
+    business_rule: Must be a non-empty string containing alphabetic characters and
+      spaces, typically in title case format with optional honorific prefix
+    cross_column_relationship: Should correspond to the same contact whose email is
+      stored in payload_contact_email; both fields identify the same individual submitting
+      through payload_submission_channel
+    description: The full name of the contact person associated with the event, typically
+      formatted as title and full name (e.g., Mr./Mrs./Ms. FirstName LastName)
+  payload_context_source:
+    business_rule: value must be a non-empty string; based on samples, appears to
+      be an enumerated type with 'fresh' as a valid value
+    cross_column_relationship: relates to payload_model_version and payload_langgraph_graph_version
+      to provide complete context about payload generation; may influence payload_context_token_count
+      calculation
+    description: Indicates the source or origin context of the event payload, representing
+      whether the data is newly generated or from another source
+  payload_context_token_count:
+    business_rule: value must be a positive number, typically an integer greater than
+      0
+    cross_column_relationship: should exist when payload_context_source is present;
+      may correlate with payload_validation_duration_ms as larger token counts could
+      result in longer validation times
+    description: The number of tokens in the context payload for the event, representing
+      the size or length of the contextual data being processed
+  payload_data_hash:
+    business_rule: value must be a 16-character hexadecimal string (lowercase letters
+      a-f and digits 0-9 only)
+    cross_column_relationship: hash is computed from the payload content which may
+      include payload_has_defaults, payload_revenue_trajectory, payload_consumed_at,
+      and payload_facts_summary fields; should be unique per distinct payload combination
+    description: A hexadecimal hash identifier representing a checksum or fingerprint
+      of the event payload data, used for data integrity verification, deduplication,
+      or content-based identification
+  payload_declined_by:
+    business_rule: value must be a non-empty string representing a valid system identifier;
+      typically lowercase with hyphens; common values include 'compliance-system',
+      'auto', 'manual-review', 'risk-engine'
+    cross_column_relationship: should only be populated when payload_declined_at is
+      not null; likely correlates with payload_is_hard_block being true; may influence
+      whether payload_adverse_action_notice_required is set
+    description: The system or entity that declined the transaction or action, such
+      as a compliance system or automated decision engine
+  payload_detected_format:
+    business_rule: value must be a valid file format identifier (e.g., pdf, docx,
+      txt, png, jpg); non-null string with length between 2-10 characters
+    cross_column_relationship: relates to payload_page_count (only applicable for
+      paginated formats like pdf), payload_extraction_model (extraction logic varies
+      by format), and payload_executed_at (format detection occurs before or during
+      execution)
+    description: The file format detected for the payload content, such as PDF, indicating
+      the type of document being processed in the event sourcing system
+  payload_document_format:
+    business_rule: value must be a valid document format type (e.g., pdf, docx, xlsx,
+      txt, csv, json, xml); should be lowercase; non-null
+    cross_column_relationship: should correspond to the file extension in payload_filename;
+      related to payload_document_type which may describe the business document category
+      while this describes the technical format
+    description: The file format of the document stored in the payload, indicating
+      the type of file encoding or structure used
+  payload_document_id:
+    business_rule: value must match pattern 'doc-[a-f0-9]{8}' and be non-null
+    cross_column_relationship: relates to payload_document_type and payload_document_format
+      which describe attributes of this document; multiple events may reference the
+      same document_id within a payload_package_id
+    description: Unique identifier for a document entity within the event payload,
+      using a prefix 'doc-' followed by an alphanumeric hash
+  payload_document_type:
+    business_rule: value must be a non-null string from a predefined enumeration of
+      valid document types; common values include 'application_proposal', 'income_statement',
+      'balance_sheet'
+    cross_column_relationship: must correspond to a valid payload_document_id; should
+      align with payload_document_format and payload_filename conventions for the
+      specified document type
+    description: The type or category of document contained in the event payload,
+      classifying business documents such as application proposals, financial statements,
+      and balance sheets
+  payload_documents_processed:
+    business_rule: value must be a non-negative integer; typically greater than 0
+      when documents exist
+    cross_column_relationship: should be populated when payload_assessed_at is not
+      null; may correlate with payload_quality_flag_count when quality assessment
+      is performed
+    description: The number of documents that have been processed in the event payload,
+      representing a count of completed document reviews or assessments
+  payload_duration_ms:
+    business_rule: value must be a non-negative number; typically greater than 0 for
+      completed events
+    cross_column_relationship: should be populated when payload_executed_at is not
+      null; may correlate with payload_page_count (higher page counts may have longer
+      durations)
+    description: Duration in milliseconds of the event payload execution or processing
+      time
+  payload_effective_date:
+    business_rule: Must be a valid date in YYYY-MM-DD format; should not be null for
+      approved events; typically should not be earlier than payload_approved_at date
+    cross_column_relationship: Should be greater than or equal to payload_approved_at
+      when payload_approved_by is not null; likely null when payload_failure_reason
+      is populated
+    description: The effective date when the event payload becomes active or takes
+      effect, representing when changes or actions described in the event should be
+      applied
+  payload_evaluation_notes:
+    business_rule: 'value must be non-empty string; typically follows pattern ''[Rule
+      Name]: [Status].'' where status is commonly ''Clear'' or indicates a violation;
+      multiple evaluation notes may be stored as array elements'
+    cross_column_relationship: corresponds to payload_rule_version which defines the
+      ruleset version used for evaluation; timestamp of evaluation stored in payload_evaluated_at;
+      classification of note stored in payload_note_type; supporting evidence referenced
+      via payload_evidence_hash
+    description: Human-readable notes documenting the results of compliance and eligibility
+      rule evaluations performed on the event payload, indicating whether specific
+      regulatory and business criteria such as Bank Secrecy Act compliance, OFAC sanctions
+      screening, jurisdiction eligibility, legal entity eligibility, and operating
+      history requirements were cleared or flagged
+  payload_evidence_hash:
+    business_rule: must be a 16-character hexadecimal string (64-bit hash representation)
+    cross_column_relationship: hash is computed from the event payload data; may be
+      referenced alongside payload_rule_name and payload_rule_version to ensure payload
+      integrity during evaluation at payload_evaluated_at timestamp
+    description: Hexadecimal hash value representing a cryptographic fingerprint or
+      checksum of the event payload data, used for integrity verification and deduplication
+  payload_executive_summary:
+    business_rule: 'Must be a non-empty string containing structured decision components:
+      approval decision (Approval/Decline recommended), trajectory status (DECLINING/RECOVERING/GROWTH),
+      compliance status (Compliance clear/flagged), and fraud screening risk level
+      (low/medium/high risk)'
+    cross_column_relationship: Approval/Decline recommendation should align with payload_approved_amount_usd
+      (approved amount > 0 when approval recommended, 0 when decline recommended);
+      trajectory and risk assessment inform payload_confidence score; timestamp should
+      be <= payload_generated_at
+    description: Executive summary text describing the approval decision recommendation,
+      business trajectory trend, compliance status, and fraud risk assessment for
+      a loan or credit application
+  payload_extraction_model:
+    business_rule: value must be non-null string following pattern '{model_name}-{version}'
+      where version is in semantic versioning format (e.g., 'X.Y' or 'X.Y.Z')
+    cross_column_relationship: related to payload_pipeline_version for tracking extraction
+      process; used in conjunction with payload_detected_format to determine which
+      extraction model was applied to the detected format; may influence structure
+      of payload_tool_input_summary
+    description: The name and version of the machine learning or AI model used to
+      extract structured data from the event payload, representing the specific extraction
+      algorithm applied during event processing
+  payload_facts_summary:
+    business_rule: Must follow format 'Revenue $X, EBITDA $Y, Net Income $Z' where
+      X, Y, Z are numeric values with comma separators; Revenue must be greater than
+      EBITDA; EBITDA must be greater than Net Income; all values must be non-negative
+    cross_column_relationship: Derived from payload_data_hash source data; timestamp
+      of extraction recorded in payload_consumed_at; quality validation results stored
+      in payload_quality_flags_present; summarization model version tracked in payload_model_deployment_id
+    description: Summary of key financial metrics extracted from event payload, containing
+      revenue, EBITDA, and net income figures in a structured text format
+  payload_failure_reason:
+    business_rule: value must be null when payload_approved_at is not null; must be
+      a non-empty string when payload_is_hard_block is true
+    cross_column_relationship: mutually exclusive with payload_approved_at (only populated
+      on failure); determines whether payload_remediation_available can be true; payload_is_hard_block
+      severity depends on the specific failure reason type
+    description: The specific reason why a compliance or regulatory check failed,
+      preventing the transaction or account action from proceeding
+  payload_file_hash:
+    business_rule: Must be a non-null hexadecimal string, typically 16 characters
+      representing an 8-byte hash value
+    cross_column_relationship: Associated with payload_file_path; should be unique
+      per unique file content but may have duplicates if same payload is stored multiple
+      times; must be populated when payload_file_path is not null
+    description: Hexadecimal hash value computed from the event payload file contents
+      to ensure data integrity and detect duplicates
+  payload_file_path:
+    business_rule: Must follow pattern 'documents/{COMP-###}/{filename}' where COMP-###
+      is a company identifier with 3 digits, path must be unique per record, must
+      have valid file extension (.pdf, .xlsx, etc.), no special characters except
+      dash, underscore, forward slash and period
+    cross_column_relationship: The filename portion after the last forward slash must
+      match payload_filename column; file extension in path must correspond to payload_document_format;
+      the file at this path must have size matching payload_file_size_bytes and hash
+      matching payload_file_hash
+    description: File system path or storage location reference for documents associated
+      with company proposals and financial statements, following a hierarchical structure
+      of documents/company_code/filename pattern
+  payload_file_size_bytes:
+    business_rule: value must be a positive number (greater than 0) and typically
+      an integer representing bytes
+    cross_column_relationship: must be null if payload_filename or payload_file_path
+      is null; must have a value if payload_file_hash and payload_uploaded_at are
+      populated
+    description: The size of the event payload file in bytes, representing the storage
+      space occupied by the associated file
+  payload_filename:
+    business_rule: 'Must be a valid filename string with an extension, following pattern:
+      [PREFIX]-[NUMBER]_[description].[extension] where extension matches common document
+      formats (pdf, xlsx, docx, etc.)'
+    cross_column_relationship: File extension should correspond to payload_document_format;
+      filename may be derived from or included in payload_file_path; payload_file_size_bytes
+      must be > 0 when filename is present; payload_document_type should align with
+      filename description (e.g., 'proposal', 'income_stmt', 'balance_sheet')
+    description: The name of the file attached to or referenced in the event payload,
+      typically containing business documents such as proposals, financial statements,
+      or spreadsheets
+  payload_fiscal_year:
+    business_rule: Must be a four-digit positive integer representing a valid year,
+      typically within range of current year minus 10 to current year plus 5
+    cross_column_relationship: Should be derivable from or consistent with payload_added_at
+      timestamp; may align with payload_session_id temporal context
+    description: The fiscal year associated with the event payload, representing the
+      financial reporting period when the event occurred or is attributed to
+  payload_fraud_score:
+    business_rule: value must be a decimal number between 0.0 and 1.0 inclusive
+    cross_column_relationship: payload_risk_level likely derives from payload_fraud_score
+      thresholds; payload_anomalies_found may influence or correlate with fraud score
+      calculation; payload_screening_model_version indicates which model generated
+      this score
+    description: A numerical score between 0 and 1 representing the probability or
+      likelihood that a transaction or event is fraudulent, where higher values indicate
+      greater fraud risk
+  payload_has_defaults:
+    business_rule: value must be boolean (True or False)
+    cross_column_relationship: when True, payload fields may contain placeholder or
+      system-generated default values; relates to data completeness alongside payload_data_hash
+    description: Boolean flag indicating whether the event payload contains default
+      values rather than actual data
+  payload_has_hard_block:
+    business_rule: Must be a boolean value (True/False); should only be True when
+      payload_rules_failed contains critical failures
+    cross_column_relationship: Likely True when payload_overall_verdict is negative/failed;
+      typically evaluated after payload_all_analyses_complete is True; hard blocks
+      would be a subset of payload_rules_failed
+    description: Boolean flag indicating whether the event processing encountered
+      a hard block condition that prevents further processing or requires immediate
+      action
+  payload_has_prior_loans:
+    business_rule: value must be boolean (True or False)
+    cross_column_relationship: may influence payload_has_defaults interpretation -
+      defaults require prior loans to exist
+    description: Boolean flag indicating whether the entity had any prior loans before
+      the current event
+  payload_has_quality_flags:
+    business_rule: value must be boolean (true/false); should be true when payload_quality_flag_count
+      > 0, false when payload_quality_flag_count = 0
+    cross_column_relationship: derived from payload_quality_flag_count; should be
+      false when payload_quality_flag_count is 0 or null; typically populated after
+      payload_assessed_at timestamp is set
+    description: Boolean indicator of whether the event payload contains any quality
+      flags raised during processing or assessment
+  payload_input_data_hash:
+    business_rule: must be a valid hexadecimal string, typically 16 characters in
+      length representing an 8-byte hash
+    cross_column_relationship: relates to payload_model_deployment_id to identify
+      unique input data versions for a given model deployment; may be referenced by
+      payload_triggered_by_event_id for event chain tracking
+    description: Hash value of the input data payload used for the event, likely for
+      caching, deduplication, or data integrity verification purposes
+  payload_interest_rate_pct:
+    business_rule: value must be a positive decimal number, typically between 0.01
+      and 30.00
+    cross_column_relationship: related to payload_term_months which defines the loan
+      duration; may be validated against payload_approved_by authorization level for
+      rate approval limits
+    description: The percentage interest rate associated with the loan or financial
+      product in the event payload
+  payload_is_coherent:
+    business_rule: value must be boolean (True/False); non-null required
+    cross_column_relationship: when False, payload_reextraction_recommended likely
+      True; influences payload_overall_confidence score; may trigger content in payload_auditor_notes
+    description: Boolean flag indicating whether the event payload data is internally
+      consistent and logically coherent, typically determined by validation logic
+      or LLM-based assessment
+  payload_is_hard_block:
+    business_rule: value must be boolean (True/False); typically True when payload_approved_at
+      is null and payload_failure_reason is populated
+    cross_column_relationship: when True, payload_approved_at should be null and payload_failure_reason
+      should be populated; when False and declined, payload_declined_by may indicate
+      soft decline or warning; payload_remediation_available often True when is_hard_block
+      is True
+    description: Boolean flag indicating whether the event represents a hard block
+      action, meaning the transaction or operation was completely prevented rather
+      than soft-warned or allowed with restrictions
+  payload_langgraph_graph_version:
+    business_rule: value must follow semantic versioning format (e.g., X.Y.Z or X.Y.Z-suffix)
+      and not be null
+    cross_column_relationship: relates to payload_agent_id and payload_model_version
+      to track the specific configuration of the agent execution; should be validated
+      alongside payload_model_version for compatibility
+    description: Version identifier for the LangGraph graph definition used in the
+      event payload, indicating the specific version of the workflow or agent graph
+      being executed
+  payload_llm_called:
+    business_rule: value must be boolean (True or False); cannot be null
+    cross_column_relationship: when True, payload_duration_ms is typically higher
+      due to LLM processing time; correlates with payload_node_name values that indicate
+      LLM-related operations
+    description: Boolean flag indicating whether a Large Language Model (LLM) was
+      invoked during the execution of this event node
+  payload_llm_cost_usd:
+    business_rule: value must be a positive decimal number greater than 0, typically
+      ranging from 0.001 to 1.0 for standard requests
+    cross_column_relationship: derived from payload_llm_tokens_input and payload_llm_tokens_output
+      using the LLM provider's pricing model; must be present when either token field
+      has a value greater than 0
+    description: The monetary cost in US dollars charged for the LLM API call, calculated
+      based on input and output token usage
+  payload_llm_tokens_input:
+    business_rule: value must be a positive number (integer or float); typically ranges
+      from hundreds to thousands of tokens
+    cross_column_relationship: should have corresponding payload_llm_tokens_output
+      and payload_llm_cost_usd values; payload_llm_cost_usd is calculated based on
+      both input and output tokens; must exist when payload_completed_at is populated
+    description: Number of input tokens consumed by the large language model (LLM)
+      during event processing
+  payload_llm_tokens_output:
+    business_rule: value must be a positive number (integer or float); typically greater
+      than 0 when payload_completed_at is populated
+    cross_column_relationship: paired with payload_llm_tokens_input to calculate total
+      tokens; used with payload_llm_cost_usd to determine output token pricing; should
+      be populated when payload_completed_at has a value
+    description: The number of tokens generated in the output response by the Large
+      Language Model (LLM) for a completed event
+  payload_loan_purpose:
+    business_rule: value must be one of predefined loan purpose categories (e.g.,
+      'working_capital', 'acquisition', 'equipment', 'expansion', 'refinancing');
+      not null
+    cross_column_relationship: must be present when payload_requested_amount_usd is
+      populated; may influence validation rules for payload_requested_amount_usd and
+      payload_loan_term_months based on business policies per loan purpose type
+    description: The purpose or intended use of the loan being applied for by the
+      applicant
+  payload_loan_term_months:
+    business_rule: value must be a positive number, typically in standard loan term
+      increments (12, 24, 36, 48, 60 months)
+    cross_column_relationship: related to payload_requested_amount_usd as loan term
+      affects repayment schedule and total interest
+    description: The duration of the loan in months as specified in the event payload
+  payload_model_deployment_id:
+    business_rule: value must match pattern 'dep-[a-f0-9]{8}' and must not be null
+      or empty
+    cross_column_relationship: associated with payload_analysis_duration_ms (deployment
+      performance metric), payload_input_data_hash (input processed by deployment),
+      and payload_quality_flags_present (deployment output quality indicators)
+    description: Unique identifier for the machine learning model deployment instance
+      that processed or generated this event, using a 'dep-' prefix followed by an
+      8-character hexadecimal string
+  payload_model_version:
+    business_rule: value must follow format 'claude-{model-family}-{version-number}-{release-date-YYYYMMDD}'
+      and not be null
+    cross_column_relationship: related to payload_agent_type which likely specifies
+      'claude' or similar AI agent type; version should be compatible with payload_langgraph_graph_version
+    description: The specific version identifier of the Claude AI model used to process
+      or generate the event payload
+  payload_next_agent_triggered:
+    business_rule: value must be a non-empty string representing a valid agent identifier;
+      should match predefined agent types in the system
+    cross_column_relationship: related to payload_priority which may determine agent
+      triggering order; logically follows the current event context and may influence
+      payload_total_cost_usd and payload_total_duration_ms for the next step
+    description: The identifier or name of the next agent or service to be triggered
+      in the workflow sequence following the current event
+  payload_node_name:
+    business_rule: value must be a non-empty string matching valid node names in the
+      workflow DAG (e.g., 'validate_inputs', 'run_extraction', 'assess_quality')
+    cross_column_relationship: must correspond to the position defined in payload_node_sequence;
+      nodes that validate should have payload_validation_duration_ms populated; certain
+      nodes like extraction steps should have payload_llm_called set to true
+    description: The name of the processing node or step within the event sourcing
+      workflow pipeline that generated or handled the event
+  payload_node_sequence:
+    business_rule: value must be a positive integer starting from 1, incrementing
+      sequentially within a given workflow execution
+    cross_column_relationship: should correspond with payload_node_name ordering;
+      lower sequence numbers should have earlier payload_validated_at timestamps within
+      the same event chain
+    description: Sequential order number of the node within a workflow or processing
+      chain, indicating the position at which this node executed in the overall event
+      processing flow
+  payload_note_text:
+    business_rule: value must be a non-empty string with maximum length of 5000 characters;
+      typically contains human-readable evaluation messages
+    cross_column_relationship: corresponds to payload_note_type which categorizes
+      the note; context provided by payload_evaluated_at timestamp; relates to payload_rules_evaluated
+      and payload_rules_passed to explain evaluation results
+    description: Free-text note or message describing the outcome or details of an
+      evaluation event, particularly related to CRA (Community Reinvestment Act) qualification
+      assessments for applicant jurisdictions
+  payload_note_type:
+    business_rule: value must be a predefined enumerated type code, appears to follow
+      pattern of uppercase words separated by underscores (e.g., 'CRA_CONSIDERATION')
+    cross_column_relationship: relates to payload_note_text which contains the actual
+      note content for this note type; populated when payload_evaluation_notes exist
+      and payload_evaluated_at is not null
+    description: Classification or category of the evaluation note associated with
+      credit risk assessment (CRA) events, indicating the type of consideration or
+      decision point in the evaluation workflow
+  payload_orchestrator_session_id:
+    business_rule: Must follow pattern 'sess-dec-' followed by exactly 8 hexadecimal
+      characters (0-9, a-f); non-null; unique per orchestration session
+    cross_column_relationship: Links multiple events processed within the same orchestration
+      workflow; typically correlates with payload_all_analyses_complete status and
+      final payload_overall_verdict outcome
+    description: Unique identifier for an orchestration session that coordinates the
+      processing workflow for events, prefixed with 'sess-dec-' followed by an 8-character
+      hexadecimal hash
+  payload_output_summary:
+    business_rule: Must be a non-empty text string containing processing results;
+      typically includes document count, confidence assessment, and next action indication
+    cross_column_relationship: Related to payload_ready_at (provides context for when
+      package became ready) and payload_quality_flag_count (confidence level may correlate
+      with quality flag counts); payload_total_nodes_executed indicates workflow completion
+      that generates this summary
+    description: Human-readable summary of the processing output including document
+      count, confidence level, and readiness status for the next stage of workflow
+  payload_overall_confidence:
+    business_rule: value must be a decimal number between 0 and 1 (inclusive), representing
+      probability or confidence percentage
+    cross_column_relationship: likely influences payload_reextraction_recommended
+      (low confidence may trigger reextraction); may correlate with payload_is_coherent
+      flag; confidence threshold may impact payload_llm_cost_usd through reprocessing
+    description: Confidence score indicating the overall quality or reliability of
+      the event payload processing, typically produced by a machine learning model
+      or validation system
+  payload_overall_verdict:
+    business_rule: 'value must be one of: ''CLEAR'', ''BLOCKED'', ''CONDITIONAL'';
+      not null when payload_all_analyses_complete is true'
+    cross_column_relationship: when value is 'BLOCKED', payload_has_hard_block should
+      be true; verdict determined after all rules in payload_rules_noted are evaluated;
+      must have corresponding payload_orchestrator_session_id
+    description: The final verdict or decision outcome from a security or compliance
+      evaluation process, indicating whether the payload or request was cleared, blocked,
+      or requires conditional approval
+  payload_package_id:
+    business_rule: Must follow format 'APEX-' followed by a 4-digit zero-padded numeric
+      sequence (e.g., APEX-0001); must be unique and not null
+    cross_column_relationship: Related to payload_document_id which may contain shipping
+      documentation for this package; payload_created_at indicates when this package
+      record was created; payload_requested_by identifies the user who initiated the
+      package request
+    description: Unique identifier for a package or shipment in the APEX system, used
+      to track and reference specific packages throughout the event sourcing platform
+  payload_page_count:
+    business_rule: value must be a positive integer greater than 0
+    cross_column_relationship: should correlate with payload_duration_ms (higher page
+      counts typically result in longer processing duration); only applicable when
+      payload_detected_format is a document type (PDF, DOCX, etc.)
+    description: Number of pages in the document or file being processed in the event
+      payload
+  payload_pipeline_version:
+    business_rule: value must match pattern 'week[0-9]+-v[0-9]+\.[0-9]+' and not be
+      null
+    cross_column_relationship: pipeline version should correspond to the payload_tool_name
+      and payload_extraction_model versions used in the same event record
+    description: Version identifier of the data processing pipeline that generated
+      or processed the event payload, following semantic versioning format with week
+      prefix
+  payload_priority:
+    business_rule: 'value must be one of predefined priority levels (observed: ''NORMAL'');
+      typically enumerated values like ''LOW'', ''NORMAL'', ''HIGH'', ''CRITICAL'''
+    cross_column_relationship: may influence processing order of events; could correlate
+      with payload_requested_at for time-sensitive operations
+    description: Priority level assigned to the event payload, indicating the urgency
+      or importance of processing this event in the event sourcing platform
+  payload_processing_ms:
+    business_rule: value must be a non-negative number (float or integer), typically
+      greater than 0 for completed processing events
+    cross_column_relationship: should correlate with payload_raw_text_length and payload_llm_tokens_input
+      (larger payloads typically require more processing time); must be populated
+      when payload_completed_at is not null; represents the duration between processing
+      start and payload_completed_at timestamp
+    description: Time duration in milliseconds required to process the event payload,
+      measuring the computational performance of payload processing operations
+  payload_quality_flag_count:
+    business_rule: value must be non-negative integer; value equals 0 when payload_has_quality_flags
+      is false
+    cross_column_relationship: when payload_quality_flag_count > 0 then payload_has_quality_flags
+      must be true; count should not exceed payload_documents_processed
+    description: The number of quality flags raised during event processing, indicating
+      data quality issues or validation failures detected in the payload
+  payload_quality_flags_present:
+    business_rule: value must be boolean (True/False); defaults to False if quality
+      checks were not performed or no flags were generated
+    cross_column_relationship: relates to payload_facts_summary which may contain
+      the actual quality flag details when this field is True; typically evaluated
+      after payload_consumed_at timestamp
+    description: Boolean flag indicating whether quality validation flags are present
+      in the event payload data
+  payload_raw_text_length:
+    business_rule: value must be a non-negative integer
+    cross_column_relationship: should correlate with payload_processing_ms - larger
+      text lengths may result in longer processing times
+    description: The length in characters of the raw text content in the event payload
+  payload_recommendation:
+    business_rule: value must be one of predefined action codes (e.g., PROCEED, APPROVE,
+      REJECT, REVIEW, ESCALATE); cannot be null or empty
+    cross_column_relationship: recommendation is derived from payload_risk_level,
+      payload_anomalies_found, and payload_rule_id evaluation; typically PROCEED correlates
+      with lower risk levels and no anomalies found
+    description: The recommended action or decision outcome from a risk assessment
+      or compliance evaluation process, indicating whether to proceed with, approve,
+      or take other action on a transaction or event
+  payload_reextraction_recommended:
+    business_rule: value must be boolean (True/False); typically set to True when
+      payload_overall_confidence is below threshold or payload_is_coherent is False
+    cross_column_relationship: dependent on payload_overall_confidence and payload_is_coherent;
+      recommendation likely recorded at payload_assessed_at timestamp; auditor may
+      provide justification in payload_auditor_notes
+    description: Boolean flag indicating whether the payload data should be re-extracted
+      due to quality issues, low confidence scores, or incoherence detected during
+      assessment
+  payload_regulation_set_version:
+    business_rule: value must follow format YYYY-Q[1-4] pattern (e.g., 2026-Q1) and
+      represent a valid future or current quarter
+    cross_column_relationship: relates to payload_rule_id and payload_rule_name which
+      are evaluated under this regulation set version; used in conjunction with payload_anomalies_found
+      and payload_recommendation to determine compliance outcomes
+    description: The version identifier of the regulation ruleset applied to evaluate
+      compliance, formatted as a year and quarter period
+  payload_remediation_available:
+    business_rule: value must be boolean (True/False); typically True when payload_failure_reason
+      is populated and the failure type is remediable
+    cross_column_relationship: logically dependent on payload_failure_reason - should
+      be False when payload_failure_reason is null; may correlate with payload_is_hard_block
+      (hard blocks often have no remediation available)
+    description: Indicates whether remediation options are available to address the
+      failure or issue that occurred in the event
+  payload_requested_amount_usd:
+    business_rule: value must be a positive number greater than 0, typically with
+      up to 2 decimal places for cents
+    cross_column_relationship: relates to payload_application_id as the loan amount
+      for that specific application; may be validated against payload_loan_purpose
+      for amount limits based on loan type
+    description: The requested loan amount in US dollars for the application, representing
+      the total funds the applicant is seeking
+  payload_requested_by:
+    business_rule: value must be a non-empty string, typically containing identifiers
+      such as 'system', user IDs, service names, or application identifiers
+    cross_column_relationship: related to stream_id as it identifies the requester
+      within a specific event stream; may correlate with payload_created_at to track
+      when the requester initiated the action
+    description: The actor or entity that initiated or requested the event, identifying
+      who triggered the action in the event stream
+  payload_revenue_trajectory:
+    business_rule: 'value must be one of: STABLE, VOLATILE, RECOVERING, GROWTH, DECLINING'
+    cross_column_relationship: likely correlated with payload_has_defaults (VOLATILE/RECOVERING
+      may indicate defaults present) and payload_has_prior_loans (trajectory assessment
+      requires loan history)
+    description: Indicates the revenue trend pattern for the entity being tracked,
+      categorizing the financial trajectory into predefined states
+  payload_risk_level:
+    business_rule: 'value must be one of: ''LOW'', ''MEDIUM'', ''HIGH'', ''CRITICAL'';
+      cannot be null'
+    cross_column_relationship: typically correlates with payload_fraud_score (higher
+      scores map to higher risk levels) and payload_anomalies_found (presence of anomalies
+      elevates risk level); influences payload_recommendation
+    description: Risk level classification assigned to the event payload, indicating
+      the severity or potential threat level of the transaction or activity being
+      monitored
+  payload_rule_id:
+    business_rule: Must be a non-null string following pattern of uppercase prefix
+      followed by hyphen and numeric sequence (e.g., 'REG-###')
+    cross_column_relationship: Associated with payload_rule_name and payload_rule_version
+      to form complete rule reference; linked to payload_regulation_set_version for
+      versioned rule set context
+    description: Unique identifier for a regulation or compliance rule referenced
+      in the event payload
+  payload_rule_name:
+    business_rule: value must be a non-empty string representing a valid rule name
+      from the regulatory framework; should correspond to a defined compliance rule
+      in the rule catalog
+    cross_column_relationship: must have a corresponding payload_rule_id that uniquely
+      identifies this rule; should be associated with a valid payload_rule_version
+      and payload_regulation_set_version; payload_evidence_hash may contain proof
+      of rule evaluation
+    description: Name of the compliance or regulatory rule being evaluated or enforced,
+      identifying specific regulatory requirements such as anti-money laundering checks,
+      sanctions screening, or eligibility criteria
+  payload_rule_version:
+    business_rule: value must follow pattern YYYY-Q[1-4]-v[0-9]+ (e.g., 2026-Q1-v1)
+    cross_column_relationship: must correspond to a valid version of the rule identified
+      by payload_rule_id and payload_rule_name
+    description: Version identifier for the payload rule applied during event processing,
+      following a year-quarter-version format
+  payload_rules_evaluated:
+    business_rule: value must be a non-negative number; should equal payload_rules_passed
+      + payload_rules_failed when both are present
+    cross_column_relationship: payload_rules_evaluated = payload_rules_passed + payload_rules_failed
+    description: The total number of business rules that were evaluated during event
+      processing, representing the sum of rules passed and rules failed
+  payload_rules_failed:
+    business_rule: value must be non-negative integer; value <= payload_rules_evaluated
+    cross_column_relationship: payload_rules_failed + payload_rules_passed + payload_rules_noted
+      = payload_rules_evaluated; if payload_rules_failed > 0 and any failed rule is
+      a hard block, then payload_has_hard_block should be 1
+    description: Number of validation rules that failed when evaluating the event
+      payload
+  payload_rules_noted:
+    business_rule: value must be non-negative numeric; typically integer >= 0
+    cross_column_relationship: payload_rules_noted + payload_rules_passed + payload_rules_failed
+      should represent total rules evaluated; relates to payload_overall_verdict determination
+    description: Number of validation rules that were noted (neither passed nor failed,
+      typically warnings or informational findings) during event processing
+  payload_rules_passed:
+    business_rule: Must be a non-negative integer; should be less than or equal to
+      payload_rules_evaluated
+    cross_column_relationship: payload_rules_passed + payload_rules_failed + payload_rules_noted
+      should equal payload_rules_evaluated
+    description: The number of business or validation rules that successfully passed
+      during event processing
+  payload_screening_model_version:
+    business_rule: value must be a non-empty string following the pattern 'claude-{model-name}-{version-date}'
+      where version-date is in YYYYMMDD format
+    cross_column_relationship: should be populated when payload_fraud_score is present;
+      corresponds to the model that generated payload_analysis_duration_ms metrics
+    description: Version identifier of the AI model used for screening or fraud detection
+      analysis on event payloads
+  payload_session_id:
+    business_rule: Must follow format 'sess-doc-' followed by 8 alphanumeric characters;
+      cannot be null or empty
+    cross_column_relationship: Groups events that occur within the same session; may
+      relate to payload_agent_id to identify which agent initiated the session
+    description: Unique identifier for a user or system session associated with the
+      event, prefixed with 'sess-doc-' followed by an alphanumeric code
+  payload_submission_channel:
+    business_rule: value must be non-null and from enumerated list of valid submission
+      channels (e.g., 'branch', 'web', 'mobile', 'phone', 'partner')
+    cross_column_relationship: Should be captured at same time as payload_contact_email
+      and payload_contact_name; web channel submissions typically require payload_contact_email
+      to be non-null
+    description: The channel through which the loan application or payload was submitted
+      by the customer, such as physical branch location, web portal, mobile app, or
+      other submission methods
+  payload_tables_extracted:
+    business_rule: value must be a non-negative integer, typically between 0 and 20
+    cross_column_relationship: should be null if payload_completed_at is null; should
+      correlate with payload_raw_text_length (longer text may contain more tables)
+      and impact payload_processing_ms (more tables may increase processing time)
+    description: Number of tables extracted from the raw text payload during processing
+  payload_term_months:
+    business_rule: value must be a positive integer, typically in range [12, 360],
+      common values are 24, 36, 48, 60, or 72 months
+    cross_column_relationship: must be set when payload_approved_by is not null; should
+      align with payload_effective_date for calculating maturity date; should correspond
+      with payload_interest_rate_pct as rates may vary by term length
+    description: The duration of the loan or payment term in months, typically representing
+      the agreed-upon repayment period
+  payload_tool_duration_ms:
+    business_rule: value must be a positive number (float or integer), greater than
+      0, typically ranging from hundreds to tens of thousands of milliseconds
+    cross_column_relationship: should be calculated as the time difference related
+      to payload_called_at timestamp; expected to be non-null when payload_tool_input_summary
+      and payload_tool_output_summary are present, indicating a completed tool execution
+    description: Duration in milliseconds that a tool execution took to complete,
+      measuring the elapsed time from tool invocation to completion
+  payload_tool_input_summary:
+    business_rule: 'value must be non-null string following pattern ''PDF extraction:
+      {document_type}'' where document_type identifies the financial statement or
+      document category'
+    cross_column_relationship: paired with payload_tool_name (likely 'PDF extraction'
+      or similar), payload_tool_output_summary (describes result of processing this
+      input), and payload_tool_duration_ms (time taken to process this input); may
+      relate to payload_extraction_model which defines the model used for extraction
+    description: Summary or identifier of the input parameter provided to the extraction
+      tool, indicating the type of document or data being processed (e.g., income
+      statement, balance sheet)
+  payload_tool_name:
+    business_rule: value must be a non-empty string representing a valid tool name;
+      appears to follow naming convention of 'week{N}_{tool_type}_pipeline'
+    cross_column_relationship: relates to payload_pipeline_version to identify tool
+      version; tool_name determines the structure and content of payload_tool_input_summary
+      and payload_tool_output_summary
+    description: The name or identifier of the tool used in the extraction pipeline
+      to process events, indicating which specific tool within the pipeline executed
+      the operation
+  payload_tool_output_summary:
+    business_rule: value must be a non-empty string describing the tool's output result;
+      typically follows pattern 'Extracted [number] [item type]'
+    cross_column_relationship: corresponds to the execution result of the tool identified
+      in payload_tool_name with input described in payload_tool_input_summary; temporally
+      associated with payload_called_at timestamp
+    description: A summary or description of the output produced by a tool execution,
+      indicating the number and type of items extracted or processed during the operation
+  payload_total_cost_usd:
+    business_rule: value must be a positive decimal number greater than or equal to
+      0, typically between 0.001 and 1.0 for standard events, with precision up to
+      5 decimal places
+    cross_column_relationship: derived from payload_total_llm_calls and payload_total_tokens_used;
+      cost should increase proportionally with tokens used and number of LLM calls;
+      must be 0 if payload_total_llm_calls is 0
+    description: Total cost in USD for processing the event payload, calculated based
+      on LLM API usage including tokens consumed and API calls made
+  payload_total_duration_ms:
+    business_rule: value must be a non-negative number; typically greater than 0 for
+      completed events
+    cross_column_relationship: duration should align with payload_requested_at timestamp;
+      may correlate with payload_total_tokens_used and payload_total_cost_usd (higher
+      tokens/cost may indicate longer duration)
+    description: Total duration in milliseconds for the event payload processing or
+      execution time
+  payload_total_llm_calls:
+    business_rule: value must be a non-negative integer >= 0; typically >= 1 when
+      LLM functionality is used
+    cross_column_relationship: should be <= payload_total_nodes_executed; when > 0,
+      payload_total_tokens_used and payload_total_cost_usd should also be > 0
+    description: The total number of calls made to Large Language Model (LLM) services
+      during a workflow or process execution, tracking API invocations for monitoring
+      usage and performance
+  payload_total_nodes_executed:
+    business_rule: value must be a positive integer greater than or equal to 1
+    cross_column_relationship: should be less than or equal to the total number of
+      nodes in the workflow; may correlate with payload_total_llm_calls and payload_total_tokens_used
+      as more nodes executed could result in more LLM interactions
+    description: The total number of nodes executed in a workflow or process graph
+      during an event, representing the count of execution steps or operations performed
+  payload_total_tokens_used:
+    business_rule: value must be a positive number; should be greater than 0 when
+      payload_total_llm_calls > 0
+    cross_column_relationship: must be 0 or null when payload_total_llm_calls = 0;
+      should correlate with payload_total_cost_usd (higher tokens typically means
+      higher cost); must be present when payload_total_llm_calls > 0
+    description: Total number of tokens consumed by language model API calls during
+      the event execution, aggregating input and output tokens across all LLM interactions
+  payload_triggered_by_event_id:
+    business_rule: Must be a valid hexadecimal string identifier; should reference
+      an existing event_id in the event records
+    cross_column_relationship: Should correspond to an event_id that occurred before
+      payload_initiated_at timestamp; may be null for root/initial events that are
+      not triggered by other events
+    description: Unique identifier of the upstream event that triggered or initiated
+      this event, establishing causal relationship in the event chain
+  payload_uploaded_by:
+    business_rule: value must be a non-empty string representing a valid user role
+      or actor type; based on samples, likely constrained to predefined roles such
+      as 'applicant', 'reviewer', 'admin', etc.
+    cross_column_relationship: related to payload_uploaded_at which captures when
+      this user uploaded the file; payload_file_hash identifies what was uploaded;
+      should have a valid timestamp in payload_uploaded_at when payload_uploaded_by
+      is populated
+    description: The role or user type of the person who uploaded the event payload
+      file, indicating who initiated the file upload action
+  payload_validation_duration_ms:
+    business_rule: value must be a non-negative numeric value, typically between 0
+      and 10000 milliseconds
+    cross_column_relationship: should equal the time difference between payload_validated_at
+      and payload_started_at converted to milliseconds; null if validation did not
+      occur
+    description: The duration in milliseconds taken to validate the event payload
+  schema_version:
+    business_rule: must be a positive integer, typically starts at 1 and increments
+      with each schema change
+    cross_column_relationship: determines the structure and fields expected in the
+      event payload; must align with the occurred_at timestamp to ensure events reference
+      valid schema versions available at that time
+    description: Version number of the event schema used to structure and validate
+      the event data, enabling backward compatibility and schema evolution tracking
+  sequence_number:
+    business_rule: value must be a positive integer starting at 1, incrementing by
+      1 for each subsequent event within the same aggregate_id, no gaps or duplicates
+      allowed per aggregate
+    cross_column_relationship: must be unique when combined with aggregate_id; resets
+      to 1 for each new aggregate_id; used with aggregate_id to maintain event ordering
+    description: Sequential order number of events within an aggregate instance, tracking
+      the chronological position of each event in the event stream for a specific
+      aggregate
+  stream_id:
+    business_rule: 'value must match pattern: {entity_type}-{system_code}-{sequence_number}
+      where entity_type is alphanumeric, system_code is uppercase alphanumeric, and
+      sequence_number is zero-padded numeric; not null'
+    cross_column_relationship: primary grouping key for events; multiple events with
+      same stream_id should be ordered by occurred_at timestamp to reconstruct entity
+      state
+    description: Unique identifier for an event stream representing a business entity
+      (loan or document package) with a prefix indicating the entity type followed
+      by a system code (APEX) and sequence number
+quality:
+  specification:
+    checks for week5-event-sourcing-platform:
+    - row_count >= 1
+    - missing_count(event_id) = 0
+    - duplicate_count(event_id) = 0
+    - missing_count(event_type) = 0
+    - missing_count(aggregate_id) = 0
+    - duplicate_count(aggregate_id) = 0
+    - missing_count(aggregate_type) = 0
+    - missing_count(sequence_number) = 0
+    - missing_count(metadata_correlation_id) = 0
+    - duplicate_count(metadata_correlation_id) = 0
+    - missing_count(metadata_user_id) = 0
+    - missing_count(metadata_source_service) = 0
+    - missing_count(schema_version) = 0
+    - missing_count(occurred_at) = 0
+    - missing_count(recorded_at) = 0
+    - missing_count(stream_id) = 0
+  type: SodaChecks
+schema:
+  aggregate_id:
+    business_rule: Must be a valid UUID format (version 5 indicated by '5' in third
+      segment); cannot be null; must be immutable once created
+    description: Unique identifier for the aggregate entity that the event belongs
+      to, representing the stream of events for a specific business object instance
+      in the event sourcing pattern
+    required: true
+    type: string
+  aggregate_type:
+    business_rule: value must be a non-empty string; should match a valid aggregate
+      type from the domain model
+    description: The type or category of domain aggregate that this event is associated
+      with, representing the business entity being tracked in the event sourcing system
+    required: true
+    type: string
+  event_id:
+    description: Column event_id
+    format: uuid
+    required: true
+    type: string
+  event_type:
+    business_rule: value must be non-null string in PascalCase format representing
+      a past-tense domain event name; must be from predefined set of valid event types
+      for the aggregate_type
+    description: The type or category of domain event that occurred within the event
+      sourcing system, representing a state change or significant action in the business
+      process lifecycle
+    required: true
+    type: string
+  metadata_correlation_id:
+    business_rule: Must be a valid UUID (RFC 4122 format) in lowercase with hyphens;
+      cannot be null or empty
+    description: Unique identifier used to correlate and trace related events across
+      distributed systems and services in the event sourcing platform
+    format: uuid
+    required: true
+    type: string
+  metadata_source_service:
+    business_rule: value must be a non-empty string matching the pattern of service
+      identifiers; appears to be constant value 'week5-event-sourcing-platform' for
+      this dataset
+    description: Identifies the source service or platform that generated the event,
+      used for tracking event origin in the event sourcing system
+    required: true
+    type: string
+  metadata_user_id:
+    business_rule: value must be non-empty string; follows pattern 'COMP-XXX' for
+      component/user identifiers or 'system' for automated system events
+    description: Identifier of the user or system actor who triggered or created the
+      event, used for audit trail and tracking purposes
+    required: true
+    type: string
+  occurred_at:
+    description: Column occurred_at
+    format: date-time
+    required: true
+    type: string
+  payload_added_at:
+    description: Column payload_added_at
+    format: date-time
+    required: false
+    type: string
+  payload_adverse_action_notice_required:
+    business_rule: value must be boolean (True/False); should be True when payload_declined_by
+      is not null
+    description: Boolean flag indicating whether an adverse action notice is legally
+      required to be sent to the applicant following a negative decision or action
+      taken against them, typically in credit, employment, or housing decisions
+    required: false
+    type: string
+  payload_agent_id:
+    business_rule: value must be non-null string following pattern 'doc-agent-{number}'
+      or similar agent naming convention
+    description: Unique identifier for the agent that generated or processed the event,
+      typically representing a document processing agent instance
+    required: false
+    type: string
+  payload_agent_type:
+    business_rule: value must be a non-empty string from a predefined set of agent
+      types; must be lowercase with underscore separators
+    description: Type or category of the agent that generated or processed the event,
+      indicating the functional role of the agent in the system workflow
+    required: false
+    type: string
+  payload_all_analyses_complete:
+    business_rule: value must be a boolean (True/False); required field
+    description: Boolean flag indicating whether all analyses in the payload have
+      been completed for this event
+    required: false
+    type: string
+  payload_analysis_duration_ms:
+    business_rule: value must be a positive number (float or integer) greater than
+      0, typically between 1 and 300000 (5 minutes)
+    description: Duration in milliseconds taken to complete the analysis of the event
+      payload, measuring the time elapsed from analysis start to completion
+    maximum: 44154.0
+    minimum: 16179.0
+    required: false
+    type: number
+  payload_anomalies_found:
+    business_rule: value must be a non-negative integer (>= 0)
+    description: Number of anomalies detected in the payload during fraud or risk
+      assessment processing
+    maximum: 0.0
+    minimum: 0.0
+    required: false
+    type: number
+  payload_applicant_id:
+    business_rule: Must follow pattern 'COMP-' followed by 3 digits (000-999), non-null,
+      alphanumeric format
+    description: Unique identifier for the applicant or company submitting the loan
+      application, using a standardized COMP prefix format
+    required: false
+    type: string
+  payload_application_id:
+    business_rule: Must follow format 'APEX-' followed by a 4-digit zero-padded numeric
+      identifier (e.g., APEX-0001); must be non-null and unique per application
+    description: Unique identifier for the application submitted within the event
+      sourcing system, used to track and reference specific application instances
+      throughout their lifecycle
+    required: false
+    type: string
+  payload_application_reference:
+    business_rule: Must follow pattern 'APEX-' followed by a 4-digit zero-padded sequential
+      number (e.g., APEX-0001 to APEX-9999)
+    description: A unique reference identifier for the application being processed,
+      following the APEX numbering scheme
+    required: false
+    type: string
+  payload_approved_amount_usd:
+    business_rule: value must be a non-negative numeric value (float or decimal) representing
+      USD currency; typically greater than 0 when an approval exists
+    description: The approved amount in US dollars for the payload transaction or
+      request, representing the monetary value that has been authorized or validated
+    required: false
+    type: string
+  payload_approved_at:
+    description: Column payload_approved_at
+    format: date-time
+    required: false
+    type: string
+  payload_approved_by:
+    business_rule: value must be non-null string; typically 'auto' for system approvals
+      or user identifier for manual approvals
+    description: Identifier of the entity or system that approved the payload, with
+      'auto' indicating automatic system approval rather than manual human approval
+    required: false
+    type: string
+  payload_assessed_at:
+    description: Column payload_assessed_at
+    format: date-time
+    required: false
+    type: string
+  payload_auditor_notes:
+    business_rule: must be non-empty string when payload_is_coherent is true; should
+      document specific findings about financial statement consistency, balance sheet
+      validation, and revenue pattern analysis
+    description: Free-text notes recorded by an auditor regarding the quality, consistency,
+      and validation of financial statements extracted from documents, including observations
+      about balance sheet accuracy and revenue trends
+    required: false
+    type: string
+  payload_called_at:
+    description: Column payload_called_at
+    format: date-time
+    required: false
+    type: string
+  payload_completed_at:
+    description: Column payload_completed_at
+    format: date-time
+    required: false
+    type: string
+  payload_confidence:
+    business_rule: value must be a decimal number between 0.0 and 1.0 inclusive
+    description: A confidence score representing the reliability or certainty level
+      of the event payload data, expressed as a decimal probability value between
+      0 and 1
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  payload_consumed_at:
+    description: Column payload_consumed_at
+    format: date-time
+    required: false
+    type: string
+  payload_contact_email:
+    business_rule: Must be a valid email format containing '@' symbol and domain;
+      not null; should match standard email regex pattern
+    description: Email address of the contact person associated with the event payload,
+      used for communication regarding loan applications or submissions
+    required: false
+    type: string
+  payload_contact_name:
+    business_rule: Must be a non-empty string containing alphabetic characters and
+      spaces, typically in title case format with optional honorific prefix
+    description: The full name of the contact person associated with the event, typically
+      formatted as title and full name (e.g., Mr./Mrs./Ms. FirstName LastName)
+    required: false
+    type: string
+  payload_context_source:
+    business_rule: value must be a non-empty string; based on samples, appears to
+      be an enumerated type with 'fresh' as a valid value
+    description: Indicates the source or origin context of the event payload, representing
+      whether the data is newly generated or from another source
+    required: false
+    type: string
+  payload_context_token_count:
+    business_rule: value must be a positive number, typically an integer greater than
+      0
+    description: The number of tokens in the context payload for the event, representing
+      the size or length of the contextual data being processed
+    maximum: 3510.0
+    minimum: 680.0
+    required: false
+    type: number
+  payload_created_at:
+    description: Column payload_created_at
+    format: date-time
+    required: false
+    type: string
+  payload_data_hash:
+    business_rule: value must be a 16-character hexadecimal string (lowercase letters
+      a-f and digits 0-9 only)
+    description: A hexadecimal hash identifier representing a checksum or fingerprint
+      of the event payload data, used for data integrity verification, deduplication,
+      or content-based identification
+    required: false
+    type: string
+  payload_deadline:
+    description: Column payload_deadline
+    format: date-time
+    required: false
+    type: string
+  payload_declined_at:
+    description: Column payload_declined_at
+    format: date-time
+    required: false
+    type: string
+  payload_declined_by:
+    business_rule: value must be a non-empty string representing a valid system identifier;
+      typically lowercase with hyphens; common values include 'compliance-system',
+      'auto', 'manual-review', 'risk-engine'
+    description: The system or entity that declined the transaction or action, such
+      as a compliance system or automated decision engine
+    required: false
+    type: string
+  payload_detected_format:
+    business_rule: value must be a valid file format identifier (e.g., pdf, docx,
+      txt, png, jpg); non-null string with length between 2-10 characters
+    description: The file format detected for the payload content, such as PDF, indicating
+      the type of document being processed in the event sourcing system
+    required: false
+    type: string
+  payload_document_format:
+    business_rule: value must be a valid document format type (e.g., pdf, docx, xlsx,
+      txt, csv, json, xml); should be lowercase; non-null
+    description: The file format of the document stored in the payload, indicating
+      the type of file encoding or structure used
+    required: false
+    type: string
+  payload_document_id:
+    business_rule: value must match pattern 'doc-[a-f0-9]{8}' and be non-null
+    description: Unique identifier for a document entity within the event payload,
+      using a prefix 'doc-' followed by an alphanumeric hash
+    required: false
+    type: string
+  payload_document_type:
+    business_rule: value must be a non-null string from a predefined enumeration of
+      valid document types; common values include 'application_proposal', 'income_statement',
+      'balance_sheet'
+    description: The type or category of document contained in the event payload,
+      classifying business documents such as application proposals, financial statements,
+      and balance sheets
+    required: false
+    type: string
+  payload_documents_processed:
+    business_rule: value must be a non-negative integer; typically greater than 0
+      when documents exist
+    description: The number of documents that have been processed in the event payload,
+      representing a count of completed document reviews or assessments
+    maximum: 3.0
+    minimum: 3.0
+    required: false
+    type: number
+  payload_duration_ms:
+    business_rule: value must be a non-negative number; typically greater than 0 for
+      completed events
+    description: Duration in milliseconds of the event payload execution or processing
+      time
+    maximum: 11948.0
+    minimum: 87.0
+    required: false
+    type: number
+  payload_effective_date:
+    business_rule: Must be a valid date in YYYY-MM-DD format; should not be null for
+      approved events; typically should not be earlier than payload_approved_at date
+    description: The effective date when the event payload becomes active or takes
+      effect, representing when changes or actions described in the event should be
+      applied
+    required: false
+    type: string
+  payload_evaluated_at:
+    description: Column payload_evaluated_at
+    format: date-time
+    required: false
+    type: string
+  payload_evaluation_notes:
+    business_rule: 'value must be non-empty string; typically follows pattern ''[Rule
+      Name]: [Status].'' where status is commonly ''Clear'' or indicates a violation;
+      multiple evaluation notes may be stored as array elements'
+    description: Human-readable notes documenting the results of compliance and eligibility
+      rule evaluations performed on the event payload, indicating whether specific
+      regulatory and business criteria such as Bank Secrecy Act compliance, OFAC sanctions
+      screening, jurisdiction eligibility, legal entity eligibility, and operating
+      history requirements were cleared or flagged
+    required: false
+    type: string
+  payload_evidence_hash:
+    business_rule: must be a 16-character hexadecimal string (64-bit hash representation)
+    description: Hexadecimal hash value representing a cryptographic fingerprint or
+      checksum of the event payload data, used for integrity verification and deduplication
+    required: false
+    type: string
+  payload_executed_at:
+    description: Column payload_executed_at
+    format: date-time
+    required: false
+    type: string
+  payload_executive_summary:
+    business_rule: 'Must be a non-empty string containing structured decision components:
+      approval decision (Approval/Decline recommended), trajectory status (DECLINING/RECOVERING/GROWTH),
+      compliance status (Compliance clear/flagged), and fraud screening risk level
+      (low/medium/high risk)'
+    description: Executive summary text describing the approval decision recommendation,
+      business trajectory trend, compliance status, and fraud risk assessment for
+      a loan or credit application
+    required: false
+    type: string
+  payload_extraction_model:
+    business_rule: value must be non-null string following pattern '{model_name}-{version}'
+      where version is in semantic versioning format (e.g., 'X.Y' or 'X.Y.Z')
+    description: The name and version of the machine learning or AI model used to
+      extract structured data from the event payload, representing the specific extraction
+      algorithm applied during event processing
+    required: false
+    type: string
+  payload_facts_summary:
+    business_rule: Must follow format 'Revenue $X, EBITDA $Y, Net Income $Z' where
+      X, Y, Z are numeric values with comma separators; Revenue must be greater than
+      EBITDA; EBITDA must be greater than Net Income; all values must be non-negative
+    description: Summary of key financial metrics extracted from event payload, containing
+      revenue, EBITDA, and net income figures in a structured text format
+    required: false
+    type: string
+  payload_failure_reason:
+    business_rule: value must be null when payload_approved_at is not null; must be
+      a non-empty string when payload_is_hard_block is true
+    description: The specific reason why a compliance or regulatory check failed,
+      preventing the transaction or account action from proceeding
+    required: false
+    type: string
+  payload_file_hash:
+    business_rule: Must be a non-null hexadecimal string, typically 16 characters
+      representing an 8-byte hash value
+    description: Hexadecimal hash value computed from the event payload file contents
+      to ensure data integrity and detect duplicates
+    required: false
+    type: string
+  payload_file_path:
+    business_rule: Must follow pattern 'documents/{COMP-###}/{filename}' where COMP-###
+      is a company identifier with 3 digits, path must be unique per record, must
+      have valid file extension (.pdf, .xlsx, etc.), no special characters except
+      dash, underscore, forward slash and period
+    description: File system path or storage location reference for documents associated
+      with company proposals and financial statements, following a hierarchical structure
+      of documents/company_code/filename pattern
+    required: false
+    type: string
+  payload_file_size_bytes:
+    business_rule: value must be a positive number (greater than 0) and typically
+      an integer representing bytes
+    description: The size of the event payload file in bytes, representing the storage
+      space occupied by the associated file
+    maximum: 379941.0
+    minimum: 48329.0
+    required: false
+    type: number
+  payload_filename:
+    business_rule: 'Must be a valid filename string with an extension, following pattern:
+      [PREFIX]-[NUMBER]_[description].[extension] where extension matches common document
+      formats (pdf, xlsx, docx, etc.)'
+    description: The name of the file attached to or referenced in the event payload,
+      typically containing business documents such as proposals, financial statements,
+      or spreadsheets
+    required: false
+    type: string
+  payload_fiscal_year:
+    business_rule: Must be a four-digit positive integer representing a valid year,
+      typically within range of current year minus 10 to current year plus 5
+    description: The fiscal year associated with the event payload, representing the
+      financial reporting period when the event occurred or is attributed to
+    maximum: 2024.0
+    minimum: 2024.0
+    required: false
+    type: number
+  payload_fraud_score:
+    business_rule: value must be a decimal number between 0.0 and 1.0 inclusive
+    description: A numerical score between 0 and 1 representing the probability or
+      likelihood that a transaction or event is fraudulent, where higher values indicate
+      greater fraud risk
+    maximum: 0.2
+    minimum: 0.07
+    required: false
+    type: number
+  payload_generated_at:
+    description: Column payload_generated_at
+    format: date-time
+    required: false
+    type: string
+  payload_has_defaults:
+    business_rule: value must be boolean (True or False)
+    description: Boolean flag indicating whether the event payload contains default
+      values rather than actual data
+    required: false
+    type: string
+  payload_has_hard_block:
+    business_rule: Must be a boolean value (True/False); should only be True when
+      payload_rules_failed contains critical failures
+    description: Boolean flag indicating whether the event processing encountered
+      a hard block condition that prevents further processing or requires immediate
+      action
+    required: false
+    type: string
+  payload_has_prior_loans:
+    business_rule: value must be boolean (True or False)
+    description: Boolean flag indicating whether the entity had any prior loans before
+      the current event
+    required: false
+    type: string
+  payload_has_quality_flags:
+    business_rule: value must be boolean (true/false); should be true when payload_quality_flag_count
+      > 0, false when payload_quality_flag_count = 0
+    description: Boolean indicator of whether the event payload contains any quality
+      flags raised during processing or assessment
+    required: false
+    type: string
+  payload_initiated_at:
+    description: Column payload_initiated_at
+    format: date-time
+    required: false
+    type: string
+  payload_input_data_hash:
+    business_rule: must be a valid hexadecimal string, typically 16 characters in
+      length representing an 8-byte hash
+    description: Hash value of the input data payload used for the event, likely for
+      caching, deduplication, or data integrity verification purposes
+    required: false
+    type: string
+  payload_interest_rate_pct:
+    business_rule: value must be a positive decimal number, typically between 0.01
+      and 30.00
+    description: The percentage interest rate associated with the loan or financial
+      product in the event payload
+    maximum: 8.21
+    minimum: 6.08
+    required: false
+    type: number
+  payload_is_coherent:
+    business_rule: value must be boolean (True/False); non-null required
+    description: Boolean flag indicating whether the event payload data is internally
+      consistent and logically coherent, typically determined by validation logic
+      or LLM-based assessment
+    required: false
+    type: string
+  payload_is_hard_block:
+    business_rule: value must be boolean (True/False); typically True when payload_approved_at
+      is null and payload_failure_reason is populated
+    description: Boolean flag indicating whether the event represents a hard block
+      action, meaning the transaction or operation was completely prevented rather
+      than soft-warned or allowed with restrictions
+    required: false
+    type: string
+  payload_langgraph_graph_version:
+    business_rule: value must follow semantic versioning format (e.g., X.Y.Z or X.Y.Z-suffix)
+      and not be null
+    description: Version identifier for the LangGraph graph definition used in the
+      event payload, indicating the specific version of the workflow or agent graph
+      being executed
+    required: false
+    type: string
+  payload_llm_called:
+    business_rule: value must be boolean (True or False); cannot be null
+    description: Boolean flag indicating whether a Large Language Model (LLM) was
+      invoked during the execution of this event node
+    required: false
+    type: string
+  payload_llm_cost_usd:
+    business_rule: value must be a positive decimal number greater than 0, typically
+      ranging from 0.001 to 1.0 for standard requests
+    description: The monetary cost in US dollars charged for the LLM API call, calculated
+      based on input and output token usage
+    maximum: 0.0236
+    minimum: 0.0068
+    required: false
+    type: number
+  payload_llm_tokens_input:
+    business_rule: value must be a positive number (integer or float); typically ranges
+      from hundreds to thousands of tokens
+    description: Number of input tokens consumed by the large language model (LLM)
+      during event processing
+    maximum: 3478.0
+    minimum: 919.0
+    required: false
+    type: number
+  payload_llm_tokens_output:
+    business_rule: value must be a positive number (integer or float); typically greater
+      than 0 when payload_completed_at is populated
+    description: The number of tokens generated in the output response by the Large
+      Language Model (LLM) for a completed event
+    maximum: 888.0
+    minimum: 204.0
+    required: false
+    type: number
+  payload_loan_purpose:
+    business_rule: value must be one of predefined loan purpose categories (e.g.,
+      'working_capital', 'acquisition', 'equipment', 'expansion', 'refinancing');
+      not null
+    description: The purpose or intended use of the loan being applied for by the
+      applicant
+    required: false
+    type: string
+  payload_loan_term_months:
+    business_rule: value must be a positive number, typically in standard loan term
+      increments (12, 24, 36, 48, 60 months)
+    description: The duration of the loan in months as specified in the event payload
+    maximum: 60.0
+    minimum: 24.0
+    required: false
+    type: number
+  payload_model_deployment_id:
+    business_rule: value must match pattern 'dep-[a-f0-9]{8}' and must not be null
+      or empty
+    description: Unique identifier for the machine learning model deployment instance
+      that processed or generated this event, using a 'dep-' prefix followed by an
+      8-character hexadecimal string
+    required: false
+    type: string
+  payload_model_version:
+    business_rule: value must follow format 'claude-{model-family}-{version-number}-{release-date-YYYYMMDD}'
+      and not be null
+    description: The specific version identifier of the Claude AI model used to process
+      or generate the event payload
+    required: false
+    type: string
+  payload_next_agent_triggered:
+    business_rule: value must be a non-empty string representing a valid agent identifier;
+      should match predefined agent types in the system
+    description: The identifier or name of the next agent or service to be triggered
+      in the workflow sequence following the current event
+    required: false
+    type: string
+  payload_node_name:
+    business_rule: value must be a non-empty string matching valid node names in the
+      workflow DAG (e.g., 'validate_inputs', 'run_extraction', 'assess_quality')
+    description: The name of the processing node or step within the event sourcing
+      workflow pipeline that generated or handled the event
+    required: false
+    type: string
+  payload_node_sequence:
+    business_rule: value must be a positive integer starting from 1, incrementing
+      sequentially within a given workflow execution
+    description: Sequential order number of the node within a workflow or processing
+      chain, indicating the position at which this node executed in the overall event
+      processing flow
+    maximum: 7.0
+    minimum: 1.0
+    required: false
+    type: number
+  payload_note_text:
+    business_rule: value must be a non-empty string with maximum length of 5000 characters;
+      typically contains human-readable evaluation messages
+    description: Free-text note or message describing the outcome or details of an
+      evaluation event, particularly related to CRA (Community Reinvestment Act) qualification
+      assessments for applicant jurisdictions
+    required: false
+    type: string
+  payload_note_type:
+    business_rule: value must be a predefined enumerated type code, appears to follow
+      pattern of uppercase words separated by underscores (e.g., 'CRA_CONSIDERATION')
+    description: Classification or category of the evaluation note associated with
+      credit risk assessment (CRA) events, indicating the type of consideration or
+      decision point in the evaluation workflow
+    required: false
+    type: string
+  payload_opened_at:
+    description: Column payload_opened_at
+    format: date-time
+    required: false
+    type: string
+  payload_orchestrator_session_id:
+    business_rule: Must follow pattern 'sess-dec-' followed by exactly 8 hexadecimal
+      characters (0-9, a-f); non-null; unique per orchestration session
+    description: Unique identifier for an orchestration session that coordinates the
+      processing workflow for events, prefixed with 'sess-dec-' followed by an 8-character
+      hexadecimal hash
+    required: false
+    type: string
+  payload_output_summary:
+    business_rule: Must be a non-empty text string containing processing results;
+      typically includes document count, confidence assessment, and next action indication
+    description: Human-readable summary of the processing output including document
+      count, confidence level, and readiness status for the next stage of workflow
+    required: false
+    type: string
+  payload_overall_confidence:
+    business_rule: value must be a decimal number between 0 and 1 (inclusive), representing
+      probability or confidence percentage
+    description: Confidence score indicating the overall quality or reliability of
+      the event payload processing, typically produced by a machine learning model
+      or validation system
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  payload_overall_verdict:
+    business_rule: 'value must be one of: ''CLEAR'', ''BLOCKED'', ''CONDITIONAL'';
+      not null when payload_all_analyses_complete is true'
+    description: The final verdict or decision outcome from a security or compliance
+      evaluation process, indicating whether the payload or request was cleared, blocked,
+      or requires conditional approval
+    required: false
+    type: string
+  payload_package_id:
+    business_rule: Must follow format 'APEX-' followed by a 4-digit zero-padded numeric
+      sequence (e.g., APEX-0001); must be unique and not null
+    description: Unique identifier for a package or shipment in the APEX system, used
+      to track and reference specific packages throughout the event sourcing platform
+    required: false
+    type: string
+  payload_page_count:
+    business_rule: value must be a positive integer greater than 0
+    description: Number of pages in the document or file being processed in the event
+      payload
+    maximum: 5.0
+    minimum: 2.0
+    required: false
+    type: number
+  payload_pipeline_version:
+    business_rule: value must match pattern 'week[0-9]+-v[0-9]+\.[0-9]+' and not be
+      null
+    description: Version identifier of the data processing pipeline that generated
+      or processed the event payload, following semantic versioning format with week
+      prefix
+    required: false
+    type: string
+  payload_priority:
+    business_rule: 'value must be one of predefined priority levels (observed: ''NORMAL'');
+      typically enumerated values like ''LOW'', ''NORMAL'', ''HIGH'', ''CRITICAL'''
+    description: Priority level assigned to the event payload, indicating the urgency
+      or importance of processing this event in the event sourcing platform
+    required: false
+    type: string
+  payload_processing_ms:
+    business_rule: value must be a non-negative number (float or integer), typically
+      greater than 0 for completed processing events
+    description: Time duration in milliseconds required to process the event payload,
+      measuring the computational performance of payload processing operations
+    maximum: 7968.0
+    minimum: 2274.0
+    required: false
+    type: number
+  payload_quality_flag_count:
+    business_rule: value must be non-negative integer; value equals 0 when payload_has_quality_flags
+      is false
+    description: The number of quality flags raised during event processing, indicating
+      data quality issues or validation failures detected in the payload
+    maximum: 0.0
+    minimum: 0.0
+    required: false
+    type: number
+  payload_quality_flags_present:
+    business_rule: value must be boolean (True/False); defaults to False if quality
+      checks were not performed or no flags were generated
+    description: Boolean flag indicating whether quality validation flags are present
+      in the event payload data
+    required: false
+    type: string
+  payload_raw_text_length:
+    business_rule: value must be a non-negative integer
+    description: The length in characters of the raw text content in the event payload
+    maximum: 5849.0
+    minimum: 2048.0
+    required: false
+    type: number
+  payload_ready_at:
+    description: Column payload_ready_at
+    format: date-time
+    required: false
+    type: string
+  payload_recommendation:
+    business_rule: value must be one of predefined action codes (e.g., PROCEED, APPROVE,
+      REJECT, REVIEW, ESCALATE); cannot be null or empty
+    description: The recommended action or decision outcome from a risk assessment
+      or compliance evaluation process, indicating whether to proceed with, approve,
+      or take other action on a transaction or event
+    required: false
+    type: string
+  payload_reextraction_recommended:
+    business_rule: value must be boolean (True/False); typically set to True when
+      payload_overall_confidence is below threshold or payload_is_coherent is False
+    description: Boolean flag indicating whether the payload data should be re-extracted
+      due to quality issues, low confidence scores, or incoherence detected during
+      assessment
+    required: false
+    type: string
+  payload_regulation_set_version:
+    business_rule: value must follow format YYYY-Q[1-4] pattern (e.g., 2026-Q1) and
+      represent a valid future or current quarter
+    description: The version identifier of the regulation ruleset applied to evaluate
+      compliance, formatted as a year and quarter period
+    required: false
+    type: string
+  payload_remediation_available:
+    business_rule: value must be boolean (True/False); typically True when payload_failure_reason
+      is populated and the failure type is remediable
+    description: Indicates whether remediation options are available to address the
+      failure or issue that occurred in the event
+    required: false
+    type: string
+  payload_requested_amount_usd:
+    business_rule: value must be a positive number greater than 0, typically with
+      up to 2 decimal places for cents
+    description: The requested loan amount in US dollars for the application, representing
+      the total funds the applicant is seeking
+    required: false
+    type: string
+  payload_requested_at:
+    description: Column payload_requested_at
+    format: date-time
+    required: false
+    type: string
+  payload_requested_by:
+    business_rule: value must be a non-empty string, typically containing identifiers
+      such as 'system', user IDs, service names, or application identifiers
+    description: The actor or entity that initiated or requested the event, identifying
+      who triggered the action in the event stream
+    required: false
+    type: string
+  payload_revenue_trajectory:
+    business_rule: 'value must be one of: STABLE, VOLATILE, RECOVERING, GROWTH, DECLINING'
+    description: Indicates the revenue trend pattern for the entity being tracked,
+      categorizing the financial trajectory into predefined states
+    required: false
+    type: string
+  payload_risk_level:
+    business_rule: 'value must be one of: ''LOW'', ''MEDIUM'', ''HIGH'', ''CRITICAL'';
+      cannot be null'
+    description: Risk level classification assigned to the event payload, indicating
+      the severity or potential threat level of the transaction or activity being
+      monitored
+    required: false
+    type: string
+  payload_rule_id:
+    business_rule: Must be a non-null string following pattern of uppercase prefix
+      followed by hyphen and numeric sequence (e.g., 'REG-###')
+    description: Unique identifier for a regulation or compliance rule referenced
+      in the event payload
+    required: false
+    type: string
+  payload_rule_name:
+    business_rule: value must be a non-empty string representing a valid rule name
+      from the regulatory framework; should correspond to a defined compliance rule
+      in the rule catalog
+    description: Name of the compliance or regulatory rule being evaluated or enforced,
+      identifying specific regulatory requirements such as anti-money laundering checks,
+      sanctions screening, or eligibility criteria
+    required: false
+    type: string
+  payload_rule_version:
+    business_rule: value must follow pattern YYYY-Q[1-4]-v[0-9]+ (e.g., 2026-Q1-v1)
+    description: Version identifier for the payload rule applied during event processing,
+      following a year-quarter-version format
+    required: false
+    type: string
+  payload_rules_evaluated:
+    business_rule: value must be a non-negative number; should equal payload_rules_passed
+      + payload_rules_failed when both are present
+    description: The total number of business rules that were evaluated during event
+      processing, representing the sum of rules passed and rules failed
+    maximum: 6.0
+    minimum: 2.0
+    required: false
+    type: number
+  payload_rules_failed:
+    business_rule: value must be non-negative integer; value <= payload_rules_evaluated
+    description: Number of validation rules that failed when evaluating the event
+      payload
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  payload_rules_noted:
+    business_rule: value must be non-negative numeric; typically integer >= 0
+    description: Number of validation rules that were noted (neither passed nor failed,
+      typically warnings or informational findings) during event processing
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  payload_rules_passed:
+    business_rule: Must be a non-negative integer; should be less than or equal to
+      payload_rules_evaluated
+    description: The number of business or validation rules that successfully passed
+      during event processing
+    maximum: 5.0
+    minimum: 1.0
+    required: false
+    type: number
+  payload_screening_model_version:
+    business_rule: value must be a non-empty string following the pattern 'claude-{model-name}-{version-date}'
+      where version-date is in YYYYMMDD format
+    description: Version identifier of the AI model used for screening or fraud detection
+      analysis on event payloads
+    required: false
+    type: string
+  payload_session_id:
+    business_rule: Must follow format 'sess-doc-' followed by 8 alphanumeric characters;
+      cannot be null or empty
+    description: Unique identifier for a user or system session associated with the
+      event, prefixed with 'sess-doc-' followed by an alphanumeric code
+    required: false
+    type: string
+  payload_started_at:
+    description: Column payload_started_at
+    format: date-time
+    required: false
+    type: string
+  payload_submission_channel:
+    business_rule: value must be non-null and from enumerated list of valid submission
+      channels (e.g., 'branch', 'web', 'mobile', 'phone', 'partner')
+    description: The channel through which the loan application or payload was submitted
+      by the customer, such as physical branch location, web portal, mobile app, or
+      other submission methods
+    required: false
+    type: string
+  payload_submitted_at:
+    description: Column payload_submitted_at
+    format: date-time
+    required: false
+    type: string
+  payload_tables_extracted:
+    business_rule: value must be a non-negative integer, typically between 0 and 20
+    description: Number of tables extracted from the raw text payload during processing
+    maximum: 5.0
+    minimum: 2.0
+    required: false
+    type: number
+  payload_term_months:
+    business_rule: value must be a positive integer, typically in range [12, 360],
+      common values are 24, 36, 48, 60, or 72 months
+    description: The duration of the loan or payment term in months, typically representing
+      the agreed-upon repayment period
+    maximum: 60.0
+    minimum: 24.0
+    required: false
+    type: number
+  payload_tool_duration_ms:
+    business_rule: value must be a positive number (float or integer), greater than
+      0, typically ranging from hundreds to tens of thousands of milliseconds
+    description: Duration in milliseconds that a tool execution took to complete,
+      measuring the elapsed time from tool invocation to completion
+    maximum: 7987.0
+    minimum: 58.0
+    required: false
+    type: number
+  payload_tool_input_summary:
+    business_rule: 'value must be non-null string following pattern ''PDF extraction:
+      {document_type}'' where document_type identifies the financial statement or
+      document category'
+    description: Summary or identifier of the input parameter provided to the extraction
+      tool, indicating the type of document or data being processed (e.g., income
+      statement, balance sheet)
+    required: false
+    type: string
+  payload_tool_name:
+    business_rule: value must be a non-empty string representing a valid tool name;
+      appears to follow naming convention of 'week{N}_{tool_type}_pipeline'
+    description: The name or identifier of the tool used in the extraction pipeline
+      to process events, indicating which specific tool within the pipeline executed
+      the operation
+    required: false
+    type: string
+  payload_tool_output_summary:
+    business_rule: value must be a non-empty string describing the tool's output result;
+      typically follows pattern 'Extracted [number] [item type]'
+    description: A summary or description of the output produced by a tool execution,
+      indicating the number and type of items extracted or processed during the operation
+    required: false
+    type: string
+  payload_total_cost_usd:
+    business_rule: value must be a positive decimal number greater than or equal to
+      0, typically between 0.001 and 1.0 for standard events, with precision up to
+      5 decimal places
+    description: Total cost in USD for processing the event payload, calculated based
+      on LLM API usage including tokens consumed and API calls made
+    maximum: 0.063
+    minimum: 0.0
+    required: false
+    type: number
+  payload_total_duration_ms:
+    business_rule: value must be a non-negative number; typically greater than 0 for
+      completed events
+    description: Total duration in milliseconds for the event payload processing or
+      execution time
+    maximum: 54283.0
+    minimum: 2456.0
+    required: false
+    type: number
+  payload_total_llm_calls:
+    business_rule: value must be a non-negative integer >= 0; typically >= 1 when
+      LLM functionality is used
+    description: The total number of calls made to Large Language Model (LLM) services
+      during a workflow or process execution, tracking API invocations for monitoring
+      usage and performance
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  payload_total_nodes_executed:
+    business_rule: value must be a positive integer greater than or equal to 1
+    description: The total number of nodes executed in a workflow or process graph
+      during an event, representing the count of execution steps or operations performed
+    maximum: 7.0
+    minimum: 3.0
+    required: false
+    type: number
+  payload_total_tokens_used:
+    business_rule: value must be a positive number; should be greater than 0 when
+      payload_total_llm_calls > 0
+    description: Total number of tokens consumed by language model API calls during
+      the event execution, aggregating input and output tokens across all LLM interactions
+    maximum: 6997.0
+    minimum: 833.0
+    required: false
+    type: number
+  payload_triggered_by_event_id:
+    business_rule: Must be a valid hexadecimal string identifier; should reference
+      an existing event_id in the event records
+    description: Unique identifier of the upstream event that triggered or initiated
+      this event, establishing causal relationship in the event chain
+    required: false
+    type: string
+  payload_uploaded_at:
+    description: Column payload_uploaded_at
+    format: date-time
+    required: false
+    type: string
+  payload_uploaded_by:
+    business_rule: value must be a non-empty string representing a valid user role
+      or actor type; based on samples, likely constrained to predefined roles such
+      as 'applicant', 'reviewer', 'admin', etc.
+    description: The role or user type of the person who uploaded the event payload
+      file, indicating who initiated the file upload action
+    required: false
+    type: string
+  payload_validated_at:
+    description: Column payload_validated_at
+    format: date-time
+    required: false
+    type: string
+  payload_validation_duration_ms:
+    business_rule: value must be a non-negative numeric value, typically between 0
+      and 10000 milliseconds
+    description: The duration in milliseconds taken to validate the event payload
+    maximum: 275.0
+    minimum: 41.0
+    required: false
+    type: number
+  payload_written_at:
+    description: Column payload_written_at
+    format: date-time
+    required: false
+    type: string
+  recorded_at:
+    description: Column recorded_at
+    format: date-time
+    required: true
+    type: string
+  schema_version:
+    business_rule: must be a positive integer, typically starts at 1 and increments
+      with each schema change
+    description: Version number of the event schema used to structure and validate
+      the event data, enabling backward compatibility and schema evolution tracking
+    required: true
+    type: string
+  sequence_number:
+    business_rule: value must be a positive integer starting at 1, incrementing by
+      1 for each subsequent event within the same aggregate_id, no gaps or duplicates
+      allowed per aggregate
+    description: Sequential order number of events within an aggregate instance, tracking
+      the chronological position of each event in the event stream for a specific
+      aggregate
+    maximum: 13.0
+    minimum: 1.0
+    required: true
+    type: integer
+  stream_id:
+    business_rule: 'value must match pattern: {entity_type}-{system_code}-{sequence_number}
+      where entity_type is alphanumeric, system_code is uppercase alphanumeric, and
+      sequence_number is zero-padded numeric; not null'
+    description: Unique identifier for an event stream representing a business entity
+      (loan or document package) with a prefix indicating the entity type followed
+      by a system code (APEX) and sequence number
+    required: true
+    type: string
+servers:
+  local:
+    format: jsonl
+    path: outputs/week5/events.jsonl
+    type: local
+statistics:
+  payload_analysis_duration_ms:
+    max: 44154.0
+    mean: 28991.2857
+    min: 16179.0
+    p25: 22970.0
+    p50: 27256.5
+    p75: 35274.0
+    p95: 41576.75
+    p99: 43638.55
+    stddev: 8342.148
+  payload_anomalies_found:
+    max: 0.0
+    mean: 0.0
+    min: 0.0
+    p25: 0.0
+    p50: 0.0
+    p75: 0.0
+    p95: 0.0
+    p99: 0.0
+    stddev: 0.0
+  payload_confidence:
+    flag: OK
+    max: 0.84
+    mean: 0.7371
+    min: 0.54
+    p25: 0.71
+    p50: 0.77
+    p75: 0.795
+    p95: 0.834
+    p99: 0.8388
+    stddev: 0.1001
+  payload_context_token_count:
+    max: 3510.0
+    mean: 1569.0339
+    min: 680.0
+    p25: 1209.0
+    p50: 1454.0
+    p75: 1768.0
+    p95: 2720.7
+    p99: 3380.08
+    stddev: 576.8933
+  payload_documents_processed:
+    max: 3.0
+    mean: 3.0
+    min: 3.0
+    p25: 3.0
+    p50: 3.0
+    p75: 3.0
+    p95: 3.0
+    p99: 3.0
+    stddev: 0.0
+  payload_duration_ms:
+    max: 11948.0
+    mean: 1509.1246
+    min: 87.0
+    p25: 212.0
+    p50: 333.0
+    p75: 465.0
+    p95: 8955.6
+    p99: 11162.92
+    stddev: 2890.5069
+  payload_file_size_bytes:
+    max: 379941.0
+    mean: 212401.8804
+    min: 48329.0
+    p25: 116848.0
+    p50: 217168.0
+    p75: 292359.0
+    p95: 363561.65
+    p99: 377477.63
+    stddev: 100717.8164
+  payload_fiscal_year:
+    max: 2024.0
+    mean: 2024.0
+    min: 2024.0
+    p25: 2024.0
+    p50: 2024.0
+    p75: 2024.0
+    p95: 2024.0
+    p99: 2024.0
+    stddev: 0.0
+  payload_fraud_score:
+    max: 0.2
+    mean: 0.1364
+    min: 0.07
+    p25: 0.075
+    p50: 0.15
+    p75: 0.185
+    p95: 0.2
+    p99: 0.2
+    stddev: 0.0545
+  payload_interest_rate_pct:
+    max: 8.21
+    mean: 7.175
+    min: 6.08
+    p25: 6.455
+    p50: 7.205
+    p75: 7.925
+    p95: 8.153
+    p99: 8.1986
+    stddev: 1.0088
+  payload_llm_cost_usd:
+    max: 0.0236
+    mean: 0.0142
+    min: 0.0068
+    p25: 0.0108
+    p50: 0.0143
+    p75: 0.017
+    p95: 0.0201
+    p99: 0.0228
+    stddev: 0.004
+  payload_llm_tokens_input:
+    max: 3478.0
+    mean: 2034.56
+    min: 919.0
+    p25: 1477.75
+    p50: 1992.5
+    p75: 2601.75
+    p95: 3100.15
+    p99: 3351.58
+    stddev: 718.0306
+  payload_llm_tokens_output:
+    max: 888.0
+    mean: 539.4
+    min: 204.0
+    p25: 340.75
+    p50: 530.0
+    p75: 702.75
+    p95: 881.0
+    p99: 885.55
+    stddev: 219.7599
+  payload_loan_term_months:
+    max: 60.0
+    mean: 41.7931
+    min: 24.0
+    p25: 36.0
+    p50: 48.0
+    p75: 48.0
+    p95: 60.0
+    p99: 60.0
+    stddev: 13.075
+  payload_node_sequence:
+    max: 7.0
+    mean: 3.2042
+    min: 1.0
+    p25: 2.0
+    p50: 3.0
+    p75: 5.0
+    p95: 6.0
+    p99: 7.0
+    stddev: 1.7589
+  payload_overall_confidence:
+    flag: OK
+    max: 0.9577
+    mean: 0.8818
+    min: 0.8088
+    p25: 0.845
+    p50: 0.8786
+    p75: 0.9215
+    p95: 0.9545
+    p99: 0.9571
+    stddev: 0.0474
+  payload_page_count:
+    max: 5.0
+    mean: 3.3333
+    min: 2.0
+    p25: 2.75
+    p50: 3.0
+    p75: 4.0
+    p95: 5.0
+    p99: 5.0
+    stddev: 1.0954
+  payload_processing_ms:
+    max: 7968.0
+    mean: 5126.6944
+    min: 2274.0
+    p25: 4128.75
+    p50: 5141.5
+    p75: 6662.75
+    p95: 7482.75
+    p99: 7909.2
+    stddev: 1643.8322
+  payload_quality_flag_count:
+    max: 0.0
+    mean: 0.0
+    min: 0.0
+    p25: 0.0
+    p50: 0.0
+    p75: 0.0
+    p95: 0.0
+    p99: 0.0
+    stddev: 0.0
+  payload_raw_text_length:
+    max: 5849.0
+    mean: 4054.3889
+    min: 2048.0
+    p25: 2942.75
+    p50: 4137.5
+    p75: 5128.0
+    p95: 5721.0
+    p99: 5816.8
+    stddev: 1179.6065
+  payload_rules_evaluated:
+    max: 6.0
+    mean: 5.2222
+    min: 2.0
+    p25: 6.0
+    p50: 6.0
+    p75: 6.0
+    p95: 6.0
+    p99: 6.0
+    stddev: 1.5635
+  payload_rules_failed:
+    max: 1.0
+    mean: 0.3333
+    min: 0.0
+    p25: 0.0
+    p50: 0.0
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.5
+  payload_rules_noted:
+    max: 1.0
+    mean: 0.7778
+    min: 0.0
+    p25: 1.0
+    p50: 1.0
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.441
+  payload_rules_passed:
+    max: 5.0
+    mean: 4.1111
+    min: 1.0
+    p25: 4.0
+    p50: 5.0
+    p75: 5.0
+    p95: 5.0
+    p99: 5.0
+    stddev: 1.5366
+  payload_tables_extracted:
+    max: 5.0
+    mean: 3.8056
+    min: 2.0
+    p25: 3.0
+    p50: 4.0
+    p75: 5.0
+    p95: 5.0
+    p99: 5.0
+    stddev: 1.0907
+  payload_term_months:
+    max: 60.0
+    mean: 39.0
+    min: 24.0
+    p25: 33.0
+    p50: 36.0
+    p75: 42.0
+    p95: 56.4
+    p99: 59.28
+    stddev: 15.0997
+  payload_tool_duration_ms:
+    max: 7987.0
+    mean: 3966.78
+    min: 58.0
+    p25: 293.75
+    p50: 4413.0
+    p75: 6597.5
+    p95: 7863.8
+    p99: 7974.75
+    stddev: 2850.9454
+  payload_total_cost_usd:
+    max: 0.063
+    mean: 0.0211
+    min: 0.0
+    p25: 0.0123
+    p50: 0.0211
+    p75: 0.0282
+    p95: 0.042
+    p99: 0.0589
+    stddev: 0.0138
+  payload_total_duration_ms:
+    max: 54283.0
+    mean: 24517.0508
+    min: 2456.0
+    p25: 13742.0
+    p50: 20693.0
+    p75: 34385.0
+    p95: 50298.4
+    p99: 53852.06
+    stddev: 14587.7698
+  payload_total_llm_calls:
+    max: 1.0
+    mean: 0.8475
+    min: 0.0
+    p25: 1.0
+    p50: 1.0
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.3626
+  payload_total_nodes_executed:
+    max: 7.0
+    mean: 5.0169
+    min: 3.0
+    p25: 3.0
+    p50: 5.0
+    p75: 6.0
+    p95: 7.0
+    p99: 7.0
+    stddev: 1.5368
+  payload_total_tokens_used:
+    max: 6997.0
+    mean: 2378.6949
+    min: 833.0
+    p25: 1316.5
+    p50: 2092.0
+    p75: 3128.0
+    p95: 4667.3
+    p99: 6549.82
+    stddev: 1358.9092
+  payload_validation_duration_ms:
+    max: 275.0
+    mean: 134.2373
+    min: 41.0
+    p25: 100.0
+    p50: 123.0
+    p75: 170.0
+    p95: 250.1
+    p99: 270.94
+    stddev: 57.037
+  sequence_number:
+    max: 13.0
+    mean: 5.3356
+    min: 1.0
+    p25: 3.0
+    p50: 5.0
+    p75: 8.0
+    p95: 11.0
+    p99: 13.0
+    stddev: 3.2438
+terms:
+  limitations: Do not modify field types without updating downstream consumers.
+  usage: Internal inter-system data contract.
