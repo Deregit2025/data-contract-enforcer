@@ -1,0 +1,28 @@
+{
+  "run_date": "2026-04-01T17:05:51.043536+00:00",
+  "embedding_drift": {
+    "drift_score": 0.7778,
+    "threshold": 0.15,
+    "status": "FAIL",
+    "sample_size": 200,
+    "message": "Drift score 0.7778 EXCEEDS threshold 0.15"
+  },
+  "prompt_input_validation": {
+    "total": 100,
+    "valid": 100,
+    "rejected": 0,
+    "status": "PASS",
+    "message": "100 passed, 0 quarantined"
+  },
+  "llm_output_schema": {
+    "total_outputs": 20,
+    "schema_violations": 0,
+    "violation_rate": 0.0,
+    "trend": "stable",
+    "status": "PASS",
+    "runs": [
+      0.0
+    ],
+    "message": "0/20 violations (0.0%), trend: stable"
+  }
+}

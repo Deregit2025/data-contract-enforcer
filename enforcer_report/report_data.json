@@ -1,0 +1,108 @@
+{
+  "report_id": "109bd848-b568-44fa-9a1a-f3c62ac34c59",
+  "generated_at": "2026-04-01T17:08:58.370321+00:00",
+  "data_health_score": 0.0,
+  "health_score": 0.0,
+  "health_narrative": "Your data platform is critically unhealthy at 0.0% \u2014 immediate action required.",
+  "violation_counts": {
+    "CRITICAL": 5,
+    "HIGH": 4,
+    "MEDIUM": 0,
+    "LOW": 0,
+    "WARNING": 0
+  },
+  "top3_violations": [
+    "The week3-document-refinery-extractions system's 'extracted_facts_confidence_max' field failed validation. This affects 100 records and 2 downstream system(s). Most likely caused by: 'data: add validation reports including violation detection run'.",
+    "The week3-document-refinery-extractions system's 'extracted_facts_confidence_mean' field failed validation. This affects 100 records and 2 downstream system(s). Most likely caused by: 'data: add validation reports including violation detection run'.",
+    "The week3-document-refinery-extractions system's 'extracted_facts_confidence_min' field failed validation. This affects 100 records and 2 downstream system(s). Most likely caused by: 'data: add validation reports including violation detection run'."
+  ],
+  "schema_changes": [
+    {
+      "field": "is_synthetic",
+      "summary": "Field 'is_synthetic' changed from None to {'business_rule': 'value must be boolean (True/False)', 'description': 'Boolean flag indicating whether the extracted document or record was synthetically generated rather than being a real/original document', 'required': False, 'type': 'string'} (field added).",
+      "verdict": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it",
+      "action": "No immediate action required."
+    },
+    {
+      "field": "extraction_model",
+      "summary": "Field 'extraction_model' changed from integer to string (type changed).",
+      "verdict": "BREAKING",
+      "reason": "Type changed integer \u2192 string \u2014 consumers will misread values",
+      "action": "ACTION REQUIRED \u2014 downstream teams must update before deploying."
+    },
+    {
+      "field": "token_count_input",
+      "summary": "Field 'token_count_input' changed from 0.0\u20131000.0 to 3099.0\u20137982.0 (range changed).",
+      "verdict": "BREAKING",
+      "reason": "Range changed 0.0\u20131000.0 \u2192 3099.0\u20137982.0 \u2014 statistical baselines invalid",
+      "action": "ACTION REQUIRED \u2014 downstream teams must update before deploying."
+    },
+    {
+      "field": "doc_name",
+      "summary": "Field 'doc_name' changed from None to {'business_rule': 'Must be a non-empty string; typically follows pattern of descriptive title with optional year suffix in format YYYY or YYYY-YY', 'description': 'Name or title of the document from which data was extracted, typically representing reports, audits, surveys or official publications with year identifiers', 'required': True, 'type': 'string'} (field added).",
+      "verdict": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it",
+      "action": "No immediate action required."
+    },
+    {
+      "field": "processing_time_ms",
+      "summary": "Field 'processing_time_ms' changed from None to {'description': 'Column processing_time_ms', 'maximum': 59916.0, 'minimum': 8614.0, 'required': True, 'type': 'integer'} (field added).",
+      "verdict": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it",
+      "action": "No immediate action required."
+    }
+  ],
+  "ai_risk_summary": "ALERT: Text data meaning has drifted significantly (drift score 0.7778, threshold 0.15). The AI system may be processing a different type of content than it was designed for. LLM output schema violation rate is 0.0% and stable. No action required. All prompt input records passed schema validation.",
+  "ai_metrics_raw": {
+    "run_date": "2026-04-01T17:05:51.043536+00:00",
+    "embedding_drift": {
+      "drift_score": 0.7778,
+      "threshold": 0.15,
+      "status": "FAIL",
+      "sample_size": 200,
+      "message": "Drift score 0.7778 EXCEEDS threshold 0.15"
+    },
+    "prompt_input_validation": {
+      "total": 100,
+      "valid": 100,
+      "rejected": 0,
+      "status": "PASS",
+      "message": "100 passed, 0 quarantined"
+    },
+    "llm_output_schema": {
+      "total_outputs": 20,
+      "schema_violations": 0,
+      "violation_rate": 0.0,
+      "trend": "stable",
+      "status": "PASS",
+      "runs": [
+        0.0
+      ],
+      "message": "0/20 violations (0.0%), trend: stable"
+    }
+  },
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "risk": "CRITICAL",
+      "action": "The week3-document-refinery-extractions system's 'extracted_facts_confidence_max' field failed validation. This affects 100 records and 2 downstream system(s). Most likely caused by: 'data: add validation reports including violation detection run'."
+    },
+    {
+      "priority": 2,
+      "risk": "HIGH",
+      "action": "Breaking schema change on field 'extraction_model'. ACTION REQUIRED \u2014 downstream teams must update before deploying. Review migration checklist in validation_reports/."
+    },
+    {
+      "priority": 3,
+      "risk": "MEDIUM",
+      "action": "AI system risk detected. Review ai_metrics.json and check recent data sources and prompt template changes."
+    }
+  ],
+  "summary": {
+    "total_reports": 14,
+    "total_violations": 9,
+    "total_schema_changes": 5,
+    "breaking_changes": 2
+  }
+}

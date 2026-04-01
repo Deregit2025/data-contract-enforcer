@@ -5,12 +5,8 @@ fields:
     required: true
     type: string
   doc_name:
-    business_rule: value must be a non-empty string, typically containing alphanumeric
-      characters, hyphens, underscores, and spaces; should represent a valid document
-      identifier
-    description: The name or title of the document from which data was extracted,
-      typically representing official reports, audits, surveys, or annual statements
-    required: true
+    description: Original document name before uuid conversion
+    required: false
     type: string
   entities_count:
     business_rule: value must be a non-negative integer; value should be 0 or greater;
@@ -100,15 +96,13 @@ fields:
     required: true
     type: string
   is_synthetic:
-    business_rule: value must be a boolean (True or False)
-    description: Boolean flag indicating whether the document or record was synthetically
-      generated rather than being a real-world document
+    description: Flag indicating record was synthetically generated
     required: false
-    type: string
+    type: boolean
   processing_time_ms:
-    description: Column processing_time_ms
-    maximum: 59916.0
-    minimum: 8614.0
+    description: Time in milliseconds to process the document
+    maximum: 300000.0
+    minimum: 1000.0
     required: true
     type: integer
   source_hash:
@@ -124,8 +118,8 @@ fields:
     business_rule: value must be positive integer greater than 0
     description: Number of tokens in the input document sent to the extraction model
       for processing
-    maximum: 7982.0
-    minimum: 3099.0
+    maximum: 8000.0
+    minimum: 3000.0
     required: true
     type: integer
   token_count_output:

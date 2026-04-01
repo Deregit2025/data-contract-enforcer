@@ -1,0 +1,292 @@
+{
+  "report_id": "ff918e6e-37d8-444f-9b2f-a43060b77c53",
+  "contract_id": "week3-document-refinery-extractions",
+  "snapshot_id": "338dd8f26c1fbc4b78f6b2d3fb618a0bd0066d585f03ec03a324aeb6a951cef6",
+  "run_timestamp": "2026-04-01T16:46:23.167929+00:00",
+  "total_checks": 22,
+  "passed": 14,
+  "failed": 8,
+  "warned": 0,
+  "errored": 0,
+  "results": [
+    {
+      "check_id": "week3-document-refinery-extractions.row_count",
+      "column_name": "row_count",
+      "check_type": "row_count",
+      "status": "PASS",
+      "actual_value": "100 rows",
+      "expected": ">=1 rows",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "Dataset has 100 rows, minimum is 1"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.doc_id.not_null",
+      "column_name": "doc_id",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field doc_id"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.doc_name.not_null",
+      "column_name": "doc_name",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field doc_name"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_at.not_null",
+      "column_name": "extracted_at",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field extracted_at"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_max.not_null",
+      "column_name": "extracted_facts_confidence_max",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field extracted_facts_confidence_max"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_max.range",
+      "column_name": "extracted_facts_confidence_max",
+      "check_type": "range",
+      "status": "FAIL",
+      "actual_value": "min=79.0000, max=100.0000, mean=93.3300",
+      "expected": ">=0.0, <=1.0",
+      "severity": "CRITICAL",
+      "records_failing": 100,
+      "sample_failing": [
+        90.0,
+        100.0
+      ],
+      "message": "100 values outside range [0.0, 1.0]"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_mean.not_null",
+      "column_name": "extracted_facts_confidence_mean",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field extracted_facts_confidence_mean"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_mean.range",
+      "column_name": "extracted_facts_confidence_mean",
+      "check_type": "range",
+      "status": "FAIL",
+      "actual_value": "min=75.6000, max=100.0000, mean=85.2619",
+      "expected": ">=0.0, <=1.0",
+      "severity": "CRITICAL",
+      "records_failing": 100,
+      "sample_failing": [
+        88.125,
+        100.0
+      ],
+      "message": "100 values outside range [0.0, 1.0]"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_min.not_null",
+      "column_name": "extracted_facts_confidence_min",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field extracted_facts_confidence_min"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_min.range",
+      "column_name": "extracted_facts_confidence_min",
+      "check_type": "range",
+      "status": "FAIL",
+      "actual_value": "min=70.0000, max=100.0000, mean=76.9600",
+      "expected": ">=0.0, <=1.0",
+      "severity": "CRITICAL",
+      "records_failing": 100,
+      "sample_failing": [
+        80.0,
+        100.0
+      ],
+      "message": "100 values outside range [0.0, 1.0]"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extraction_model.not_null",
+      "column_name": "extraction_model",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field extraction_model"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.processing_time_ms.not_null",
+      "column_name": "processing_time_ms",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field processing_time_ms"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.processing_time_ms.range",
+      "column_name": "processing_time_ms",
+      "check_type": "range",
+      "status": "PASS",
+      "actual_value": "min=8614.0000, max=59916.0000, mean=33963.8200",
+      "expected": ">=8614.0, <=59916.0",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 values outside range [8614.0, 59916.0]"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.source_hash.not_null",
+      "column_name": "source_hash",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field source_hash"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.source_path.not_null",
+      "column_name": "source_path",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field source_path"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts.confidence.range",
+      "column_name": "extracted_facts_confidence_min",
+      "check_type": "range",
+      "status": "FAIL",
+      "actual_value": "min=70.0000, max=100.0000, mean=76.9600",
+      "expected": ">=0.0, <=1.0",
+      "severity": "CRITICAL",
+      "records_failing": 100,
+      "sample_failing": [
+        80.0,
+        100.0
+      ],
+      "message": "100 values outside range [0.0, 1.0]"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts.confidence.max_range",
+      "column_name": "extracted_facts_confidence_max",
+      "check_type": "range",
+      "status": "FAIL",
+      "actual_value": "min=79.0000, max=100.0000, mean=93.3300",
+      "expected": ">=0.0, <=1.0",
+      "severity": "CRITICAL",
+      "records_failing": 100,
+      "sample_failing": [
+        90.0,
+        100.0
+      ],
+      "message": "100 values outside range [0.0, 1.0]"
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.processing_time_ms.drift",
+      "column_name": "processing_time_ms",
+      "check_type": "statistical_drift",
+      "status": "PASS",
+      "actual_value": "mean=33963.8200, stddev=15293.8477",
+      "expected": "baseline mean=33963.8200 \u00b12 stddev",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "Mean within baseline range (deviation=0.00 stddev)."
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_mean.drift",
+      "column_name": "extracted_facts_confidence_mean",
+      "check_type": "statistical_drift",
+      "status": "FAIL",
+      "actual_value": "mean=85.2619, stddev=5.1279",
+      "expected": "baseline mean=0.8526 \u00b12 stddev",
+      "severity": "HIGH",
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "Mean shifted 1645.4 stddev from baseline (0.8526 \u2192 85.2619). Possible scale change."
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_min.drift",
+      "column_name": "extracted_facts_confidence_min",
+      "check_type": "statistical_drift",
+      "status": "FAIL",
+      "actual_value": "mean=76.9600, stddev=7.0866",
+      "expected": "baseline mean=0.7696 \u00b12 stddev",
+      "severity": "HIGH",
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "Mean shifted 1074.6 stddev from baseline (0.7696 \u2192 76.9600). Possible scale change."
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.extracted_facts_confidence_max.drift",
+      "column_name": "extracted_facts_confidence_max",
+      "check_type": "statistical_drift",
+      "status": "FAIL",
+      "actual_value": "mean=93.3300, stddev=4.6841",
+      "expected": "baseline mean=0.9333 \u00b12 stddev",
+      "severity": "HIGH",
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "Mean shifted 1974.3 stddev from baseline (0.9333 \u2192 93.3300). Possible scale change."
+    },
+    {
+      "check_id": "week3-document-refinery-extractions.entity_refs.integrity",
+      "column_name": "extracted_facts[*].entity_refs",
+      "check_type": "referential_integrity",
+      "status": "PASS",
+      "actual_value": "0 broken references",
+      "expected": "all entity_refs exist in entities[]",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 entity_refs point to non-existent entity_ids"
+    }
+  ]
+}
