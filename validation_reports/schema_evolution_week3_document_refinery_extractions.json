@@ -1,0 +1,74 @@
+{
+  "report_id": "533ef5e8-69b0-4cb6-ab0d-cd6afd9edc76",
+  "contract_id": "week3-document-refinery-extractions",
+  "generated_at": "2026-04-01T16:59:17.349198+00:00",
+  "compared_snapshots": {
+    "old": "2026-04-01T02-49-31.yaml",
+    "new": "2026-04-01T16-40-38.yaml"
+  },
+  "summary": {
+    "total_changes": 5,
+    "breaking_changes": 2,
+    "safe_changes": 3
+  },
+  "changes_detected": [
+    {
+      "field": "is_synthetic",
+      "change_type": "FIELD_ADDED",
+      "old_value": null,
+      "new_value": "{'business_rule': 'value must be boolean (True/False)', 'description': 'Boolean flag indicating whether the extracted document or record was synthetically generated rather than being a real/original document', 'required': False, 'type': 'string'}",
+      "compatibility": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it"
+    },
+    {
+      "field": "extraction_model",
+      "change_type": "TYPE_CHANGED",
+      "old_value": "integer",
+      "new_value": "string",
+      "compatibility": "BREAKING",
+      "reason": "Type changed integer \u2192 string \u2014 consumers will misread values"
+    },
+    {
+      "field": "token_count_input",
+      "change_type": "RANGE_CHANGED",
+      "old_value": "0.0\u20131000.0",
+      "new_value": "3099.0\u20137982.0",
+      "compatibility": "BREAKING",
+      "reason": "Range changed 0.0\u20131000.0 \u2192 3099.0\u20137982.0 \u2014 statistical baselines invalid"
+    },
+    {
+      "field": "doc_name",
+      "change_type": "FIELD_ADDED",
+      "old_value": null,
+      "new_value": "{'business_rule': 'Must be a non-empty string; typically follows pattern of descriptive title with optional year suffix in format YYYY or YYYY-YY', 'description': 'Name or title of the document from which data was extracted, typically representing reports, audits, surveys or official publications with year identifiers', 'required': True, 'type': 'string'}",
+      "compatibility": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it"
+    },
+    {
+      "field": "processing_time_ms",
+      "change_type": "FIELD_ADDED",
+      "old_value": null,
+      "new_value": "{'description': 'Column processing_time_ms', 'maximum': 59916.0, 'minimum': 8614.0, 'required': True, 'type': 'integer'}",
+      "compatibility": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it"
+    }
+  ],
+  "blast_radius": [
+    "file::src/graph/knowledge_graph.py",
+    "file::src/graph/graph_serializers.py",
+    "file::tests/test_archivist.py",
+    "file::src/utils/file_utils.py",
+    "file::src/utils/git_utils.py"
+  ],
+  "migration_checklist": [
+    "1. Notify downstream consumers of breaking change in 'extraction_model'",
+    "2. Revert 'extraction_model' from string back to integer in producer",
+    "3. Re-run ValidationRunner to confirm fix",
+    "4. Re-establish statistical baseline for 'extraction_model' in baselines.json",
+    "5. Notify downstream consumers of breaking change in 'token_count_input'",
+    "6. Revert 'token_count_input' from 3099.0\u20137982.0 back to 0.0\u20131000.0 in producer",
+    "7. Re-run ValidationRunner to confirm fix",
+    "8. Re-establish statistical baseline for 'token_count_input' in baselines.json"
+  ],
+  "rollback_plan": "Revert the producer to its state before snapshot 2026-04-01T16-40-38.yaml. Re-run the pipeline. Validate all breaking fields return to original values. Re-run ContractGenerator to re-establish baselines."
+}
