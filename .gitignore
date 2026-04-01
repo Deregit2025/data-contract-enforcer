@@ -1,0 +1,56 @@
+# virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# environment variables — never commit API keys
+.env
+
+# python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# large model files
+*.npz
+*.pkl
+*.pickle
+*.h5
+
+# logs
+*.log
+
+# temporary files
+*.tmp
+*.temp
