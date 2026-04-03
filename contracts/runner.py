@@ -691,6 +691,17 @@ def main():
         description="ValidationRunner — execute contract checks"
     )
     parser.add_argument(
+        "--mode",
+        default="AUDIT",
+        choices=["AUDIT", "WARN", "ENFORCE"],
+        help=(
+            "Enforcement mode. "
+            "AUDIT: log all violations, never block. "
+            "WARN: block on CRITICAL only. "
+            "ENFORCE: block on CRITICAL or HIGH."
+        )
+    )
+    parser.add_argument(
         "--contract",
         required=True,
         help="path to contract YAML file"
@@ -729,22 +740,56 @@ def main():
     warned  = sum(1 for r in results if r["status"] == "WARN")
     errored = sum(1 for r in results if r["status"] == "ERROR")
 
-    # build report
+    # ── enforcement mode logic ──
+    should_block = False
+    block_reason = ""
+
+    if args.mode == "WARN":
+        critical_fails = [
+            r for r in results
+            if r["status"] == "FAIL"
+            and r.get("severity") == "CRITICAL"
+        ]
+        if critical_fails:
+            should_block = True
+            block_reason = (
+                f"WARN mode: {len(critical_fails)} CRITICAL "
+                f"violation(s) detected — pipeline blocked"
+            )
+
+    elif args.mode == "ENFORCE":
+        blocking_fails = [
+            r for r in results
+            if r["status"] == "FAIL"
+            and r.get("severity") in ("CRITICAL", "HIGH")
+        ]
+        if blocking_fails:
+            should_block = True
+            block_reason = (
+                f"ENFORCE mode: {len(blocking_fails)} CRITICAL/HIGH "
+                f"violation(s) detected — pipeline blocked"
+            )
+
+    # ── build report ──
     report = {
-        "report_id":    str(uuid.uuid4()),
-        "contract_id":  contract_id,
-        "snapshot_id":  snapshot_id(args.data),
-        "run_timestamp": datetime.now(timezone.utc).isoformat(),
-        "total_checks": len(results),
-        "passed":       passed,
-        "failed":       failed,
-        "warned":       warned,
-        "errored":      errored,
-        "results":      results
+        "report_id":        str(uuid.uuid4()),
+        "contract_id":      contract_id,
+        "snapshot_id":      snapshot_id(args.data),
+        "run_timestamp":    datetime.now(timezone.utc).isoformat(),
+        "enforcement_mode": args.mode,
+        "pipeline_blocked": should_block,
+        "block_reason":     block_reason,
+        "total_checks":     len(results),
+        "passed":           passed,
+        "failed":           failed,
+        "warned":           warned,
+        "errored":          errored,
+        "results":          results
     }
 
-    # print summary
+    # ── print summary ──
     print(f"\n  Results:")
+    print(f"    Mode:  {args.mode}")
     print(f"    PASS:  {passed}")
     print(f"    FAIL:  {failed}")
     print(f"    WARN:  {warned}")
@@ -757,15 +802,22 @@ def main():
             if r["status"] == "FAIL":
                 print(f"    - {r['check_id']}: {r['message']}")
 
-    # write report
+    # ── mode status ──
+    print(f"\n  Mode: {args.mode}")
+    if should_block:
+        print(f"  BLOCKED: {block_reason}")
+    elif args.mode != "AUDIT":
+        print(f"  Pipeline allowed to proceed")
+    else:
+        print(f"  AUDIT mode — violations logged, pipeline not blocked")
+
+    # ── write report ──
     os.makedirs(REPORTS_DIR, exist_ok=True)
 
     if args.output:
         output_path = args.output
     else:
-        timestamp   = datetime.now(timezone.utc).strftime(
-            "%Y%m%d_%H%M"
-        )
+        timestamp   = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
         short_id    = contract_id.split("-")[0]
         output_path = os.path.join(
             REPORTS_DIR,
