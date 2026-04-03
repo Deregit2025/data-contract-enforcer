@@ -394,5 +394,321 @@ that affects 847 records across 3 downstream systems is
 harder to ignore than an entry in a log file.
 
 ---
+---
 
+## Section 6 — How This Maps to the Real World
+
+### 6.1 The Three Trust Boundary Tiers
+
+Every architectural decision in data contract enforcement changes
+depending on which trust boundary tier you are operating in.
+The sentinel-contracts platform operates in Tier 1. Understanding
+all three tiers is what allows an FDE to architect correctly
+across different client engagements.
+
+**Tier 1 — Same team, same repo**
+Full lineage graph available. Git history of all producers
+accessible. All schemas visible. Blast radius computed by
+traversing the lineage graph downstream from the producer node
+to full transitive depth.
+
+This is the tier the sentinel-contracts platform implements.
+All five systems — Intent Code Correlator, Digital Courtroom,
+Document Refinery, Brownfield Cartographer, Event Sourcing
+Platform — are owned by the same team. The Week 4 lineage
+graph covers all five systems. The ViolationAttributor can
+traverse it freely to compute blast radius and build blame
+chains.
+
+Concrete example from this platform: when the Week 3
+confidence field was scaled from 0.0–1.0 to 0–100, the
+ViolationAttributor traversed the lineage graph to find
+week4-cartographer as a downstream consumer. This traversal
+only works because we own both systems and can see inside
+both. At Tier 2 or Tier 3 this traversal would fail.
+
+**Tier 2 — Same company, different teams**
+Partial lineage graph. Each team can see their own systems
+and the published contracts from other teams. They cannot
+see inside other teams' internal graphs.
+
+The blast radius computation changes fundamentally at this
+tier. Instead of traversing the lineage graph, the producer
+queries a contract registry — DataHub, OpenMetadata, or
+dbt Mesh — asking "which teams subscribed to this contract?"
+Each subscriber then independently computes their own
+internal blast radius.
+
+The contract_registry/subscriptions.yaml file in this
+platform is a Tier 1 implementation of this pattern. It
+manually records all inter-system dependencies. At Tier 2
+this YAML file would be replaced by a registry service API.
+The ViolationAttributor's registry query logic would remain
+identical — only the data source changes.
+
+Real example: Netflix's inter-team data mesh uses a central
+catalog where teams register their dependencies. When a
+schema change is published, the catalog answers "who
+subscribed?" without any producer needing to know their
+consumers' internal architecture.
+
+**Tier 3 — Different companies**
+No lineage graph. No internal visibility. Contract registry
+with subscription model. Breaking changes are versioned
+(v1 → v2) with a deprecation window. Each company gets
+notified. Each company computes its own internal blast
+radius independently.
+
+The cross-company blast radius is subscriber count plus
+which contract versions are still active — never a graph
+traversal.
+
+Real example: Stripe publishing API schema changes. Stripe
+does not know what code their customers run. They publish
+a versioned changelog. Each customer independently decides
+when to migrate. The blast radius is the subscriber count
+in Stripe's developer portal.
+
+**The core architectural principle:** Enforcement is always
+at the consumer's ingestion boundary — not at the producer
+and not in transit. The producer publishes the contract.
+The consumer runs the ValidationRunner against incoming
+data before any business logic processes it. If the check
+fails the pipeline stops. The producer never knew the
+consumer was checking.
+
+The SchemaEvolutionAnalyzer is the exception — it runs on
+the producer side as a pre-emptive layer catching breaking
+changes before they ship. The ValidationRunner is the
+reactive layer that catches what the SchemaEvolutionAnalyzer
+missed.
+
+---
+
+### 6.2 Real Tooling Comparison
+
+Understanding where sentinel-contracts sits relative to
+production tools is what makes an FDE credible in a client
+conversation where existing tooling is already deployed.
+
+**Confluent Schema Registry**
+The most widely deployed contract enforcement system.
+Handles Tier 2–3 by enforcing compatibility rules at
+write time — it refuses to register a breaking schema
+change unless the compatibility mode explicitly permits it.
+Blast radius is never computed because breaking changes
+are blocked before they ship.
+
+Key difference from sentinel-contracts: Confluent operates
+at write time (prevents) while our ValidationRunner operates
+at read time (detects). Confluent is fundamentally more
+reliable for preventing breaking changes but provides no
+statistical checks and no AI-specific contract extensions.
+It is also tied to the Kafka/Confluent ecosystem.
+
+If a client already uses Confluent for Kafka, the
+recommendation is to extend compatibility enforcement to
+non-Kafka schemas using the Confluent REST API — it
+supports arbitrary JSON Schema registration, not just
+Kafka-specific schemas. The sentinel-contracts
+SchemaEvolutionAnalyzer serves the same purpose for
+clients who do not use Confluent.
+
+**dbt Tests / dbt Mesh**
+The most widely deployed data quality testing system for
+SQL-based data warehouses. dbt schema.yml tests (not_null,
+unique, accepted_values, relationships) are already in most
+mature data platform stacks.
+
+The sentinel-contracts ContractGenerator outputs
+dbt-compatible schema.yml files alongside every Bitol
+YAML contract. This means our contracts are immediately
+executable in any existing dbt project without additional
+infrastructure. At Tier 2, dbt Mesh handles cross-team
+dependencies through ref() calls that cross project
+boundaries — the blast radius is computable from the
+dbt DAG.
+
+Key gap: dbt cannot enforce AI-specific contracts.
+There is no native dbt test for embedding drift or
+LLM output schema violation rate. This is the gap
+sentinel-contracts fills.
+
+**Great Expectations / Soda**
+The deepest statistical profiling tools available.
+Great Expectations' expectation suites and Soda's
+check YAML cover distribution checks, cardinality
+estimation, and column-level anomaly detection that
+go beyond what dbt can express.
+
+Key gap: no blame chain, no cross-system lineage,
+no AI-specific extensions. Great Expectations is
+the right choice for deep statistical profiling of
+warehouse data. sentinel-contracts is the right
+choice when blame attribution and AI-specific
+validation are required.
+
+**Pact**
+The most rigorous implementation of consumer-driven
+contracts. Used for microservice API contracts at
+Tier 3. Each consumer publishes the subset of the
+contract they depend on. Producers must pass all
+consumer pacts before deploying.
+
+The contract_registry/subscriptions.yaml in this
+platform is conceptually similar — each subscriber
+declares the fields they consume and which are
+breaking. The difference is that Pact enforces at
+the producer's CI gate while our registry is
+consulted by the ViolationAttributor after a
+violation is detected.
+
+**Summary positioning:**
+sentinel-contracts uniquely combines blame chain
+attribution, AI-specific extensions (embedding
+drift, prompt input validation, LLM output schema),
+and a human-readable enforcer report. No existing
+tool provides all three. Most mature platforms use
+multiple tools: Confluent for streaming schemas,
+dbt for warehouse quality, Great Expectations for
+statistical profiling, and a catalog for lineage.
+sentinel-contracts' value proposition is unifying
+these concerns specifically for AI systems.
+
+---
+
+### 6.3 Five Practical Tradeoffs
+
+**Tradeoff 1 — Enforcement Strictness vs Pipeline Availability**
+
+The sentinel-contracts ValidationRunner implements three
+enforcement modes:
+
+AUDIT — log violations, never block. Used when deploying
+contracts for the first time on a client system. Contracts
+may have false positives. The calibration period reveals
+which contracts are wrong before any downstream impact.
+Airbnb's Minerva platform spent 4–8 weeks in AUDIT mode
+before enabling blocking. This is the recommended default.
+
+WARN — block on CRITICAL only. Used after the calibration
+period when contracts are stable but the team is not yet
+ready for full enforcement.
+
+ENFORCE — block on CRITICAL or HIGH. Used for
+mission-critical pipelines where silent corruption is
+unacceptable. Financial data, healthcare data, any
+pipeline with SLA requirements.
+
+Concrete example from this platform: the first run of
+the ValidationRunner on the injected confidence violation
+in AUDIT mode logged 8 failures without blocking. In WARN
+mode it blocked the pipeline because 5 of the 8 failures
+were CRITICAL. In ENFORCE mode it blocked on all 8. The
+--mode flag makes this transition explicit and controllable.
+
+**Tradeoff 2 — Contract Completeness vs Contract Drift**
+
+The over-specified contract trap: a contract that specifies
+exact row counts, exact cardinality, and tight statistical
+ranges will generate constant false positives as the
+upstream system grows.
+
+The under-specified contract trap: a contract that only
+checks column existence and type will pass the confidence
+0.0–1.0 → 0–100 change because the type is still float.
+Statistical checks are what catch silent corruption.
+
+The practical balance implemented in sentinel-contracts:
+structural checks are strict (exact types, required fields,
+enum values). Statistical checks use configurable thresholds
+with a baseline refresh cadence. The processing_time_ms
+range was deliberately widened from the auto-generated
+8128–59372 to 1000–300000 to prevent false positives as
+the document corpus grows.
+
+**Tradeoff 3 — Who Owns the Contract**
+
+sentinel-contracts uses producer-owned contracts because
+the ContractGenerator runs on the producer's output. The
+generator observes what the data currently looks like and
+writes contracts from observation.
+
+The risk: the producer may not know what the consumer needs.
+A confidence field that is always 0.9 in the producer's
+test data will not trigger the "almost certainly clamped"
+flag. The consumer who depends on variance in that field
+has no way to express that requirement.
+
+The contract_registry/subscriptions.yaml partially addresses
+this by giving consumers a place to declare breaking_fields
+with reasons. This is a step toward jointly negotiated
+contracts without the full overhead of the Pact model.
+
+**Tradeoff 4 — Real-Time vs Batch Enforcement**
+
+sentinel-contracts implements batch enforcement — the
+ValidationRunner runs on a complete snapshot before the
+pipeline consumes it. This is correct for the current
+architecture where data arrives as JSONL files.
+
+For a client with a streaming pipeline, the migration path
+is: deploy batch enforcement first to calibrate thresholds
+with zero production risk, then migrate critical checks to
+stream enforcement after 30 days. The Kafka integration
+planned for the production-grade version of this platform
+would attach validation to the stream processor, reducing
+violation detection latency from hours to seconds.
+
+**Tradeoff 5 — Schema Registry Overhead vs Governance Visibility**
+
+The contract_registry/subscriptions.yaml costs one hour
+to set up and saves days when the first schema change
+happens. The minimum viable registry — a YAML file listing
+every inter-system dependency with consuming fields and a
+contact email — is always worth the overhead when more
+than two teams share a data interface.
+
+The registry only works if schema changes require a registry
+update as part of the deployment process. The enforcement
+step that makes this real: the producer's CI pipeline must
+run the SchemaEvolutionAnalyzer before any deploy. If a
+breaking change is detected without a matching registry
+notification, the deploy fails. This is the pattern
+implemented by DataHub's data contracts feature released
+in 2023.
+
+---
+
+### 6.4 Contract Registry — Tier 1 Implementation
+
+The contract_registry/subscriptions.yaml file in this
+platform is the minimum viable registry. It records seven
+subscriptions covering all inter-system dependencies:
+
+- Week 3 → Week 4 (ENFORCE mode)
+- Week 3 → Week 7 (AUDIT mode)
+- Week 4 → Week 7 (ENFORCE mode)
+- Week 5 → Week 7 (ENFORCE mode)
+- LangSmith → Week 7 (AUDIT mode)
+- Week 2 → Week 7 (AUDIT mode)
+- Week 1 → Week 2 (WARN mode)
+
+The ViolationAttributor queries this registry as its
+primary blast radius source. When a violation is detected
+in week3-document-refinery-extractions.extracted_facts.
+confidence, the registry immediately returns
+week4-cartographer (ENFORCE) and week7-enforcer (AUDIT)
+as affected subscribers — without any lineage traversal.
+The lineage graph is then used as an enrichment source
+to compute transitive contamination depth.
+
+This is the exact pattern DataHub's impact analysis
+feature uses at Tier 2 — registry for "who is affected",
+lineage for "how deeply". The only difference between
+the YAML file and a Tier 2 registry service is the
+query mechanism. The ViolationAttributor's code would
+not change — only the data source for the registry query.
+
+*Total word count including Sections 1–5: approximately 2,800 words*
 
