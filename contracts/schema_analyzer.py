@@ -238,27 +238,104 @@ def generate_migration_report(
     breaking = [c for c in changes_with_class if c["compatibility"] == "BREAKING"]
     safe     = [c for c in changes_with_class if c["compatibility"] == "SAFE"]
 
-    # build migration checklist
+    # ── per-consumer failure mode analysis ──
+    # load registry to get subscriber details
+    consumer_analysis = []
+    try:
+        if os.path.exists("contract_registry/subscriptions.yaml"):
+            with open("contract_registry/subscriptions.yaml") as f:
+                registry = yaml.safe_load(f)
+            subscriptions = registry.get("subscriptions", [])
+
+            for sub in subscriptions:
+                if sub.get("contract_id") != contract_id:
+                    continue
+
+                subscriber_id   = sub.get("subscriber_id", "unknown")
+                validation_mode = sub.get("validation_mode", "AUDIT")
+                breaking_fields = sub.get("breaking_fields", [])
+                fields_consumed = sub.get("fields_consumed", [])
+
+                # find which breaking changes affect this consumer
+                affected_changes = []
+                for change in breaking:
+                    field = change["field"]
+                    # check if this consumer cares about this field
+                    consumer_breaking = [
+                        b for b in breaking_fields
+                        if isinstance(b, dict) and (
+                            b.get("field", "") in field or
+                            field in b.get("field", "")
+                        )
+                    ]
+                    if consumer_breaking or any(
+                        fc in field or field in fc
+                        for fc in fields_consumed
+                    ):
+                        affected_changes.append({
+                            "field":          field,
+                            "change_type":    change["change_type"],
+                            "failure_mode":   (
+                                consumer_breaking[0].get("reason", "")
+                                if consumer_breaking
+                                else f"Consumer reads {field} which changed"
+                            ),
+                            "severity": (
+                                "CRITICAL"
+                                if validation_mode == "ENFORCE"
+                                else "HIGH"
+                                if validation_mode == "WARN"
+                                else "MEDIUM"
+                            )
+                        })
+
+                if affected_changes:
+                    consumer_analysis.append({
+                        "subscriber_id":   subscriber_id,
+                        "validation_mode": validation_mode,
+                        "contact":         sub.get("contact", ""),
+                        "affected_changes": affected_changes,
+                        "recommended_action": (
+                            f"Notify {subscriber_id} immediately. "
+                            f"Validation mode is {validation_mode} — "
+                            + (
+                                "pipeline will be BLOCKED on next run."
+                                if validation_mode == "ENFORCE"
+                                else "violations will be logged but pipeline will continue."
+                                if validation_mode == "AUDIT"
+                                else "CRITICAL violations will block pipeline."
+                            )
+                        )
+                    })
+    except Exception as e:
+        print(f"  WARNING: consumer analysis failed: {e}")
+
+    # ── migration checklist ──
     checklist = []
     step = 1
     for change in breaking:
-        field    = change["field"]
-        old_val  = change["old_value"]
-        new_val  = change["new_value"]
+        field   = change["field"]
+        old_val = change["old_value"]
+        new_val = change["new_value"]
         checklist.append(
-            f"{step}. Notify downstream consumers of breaking change in '{field}'"
+            f"{step}. Notify all registry subscribers of breaking "
+            f"change in '{field}' — see consumer_analysis section"
         )
         step += 1
         checklist.append(
-            f"{step}. Revert '{field}' from {new_val} back to {old_val} in producer"
+            f"{step}. Revert '{field}' from {new_val} back to "
+            f"{old_val} in producer"
         )
         step += 1
         checklist.append(
-            f"{step}. Re-run ValidationRunner to confirm fix"
+            f"{step}. Re-run ValidationRunner with --mode AUDIT "
+            f"on all consumer datasets to confirm fix"
         )
         step += 1
         checklist.append(
-            f"{step}. Re-establish statistical baseline for '{field}' in baselines.json"
+            f"{step}. Re-establish statistical baseline for "
+            f"'{field}' by deleting entry from "
+            f"schema_snapshots/baselines.json and re-running generator"
         )
         step += 1
 
@@ -266,10 +343,10 @@ def generate_migration_report(
         checklist = ["No breaking changes — no migration required"]
 
     rollback = (
-        f"Revert the producer to its state before snapshot "
-        f"{new_snapshot_name}. Re-run the pipeline. "
-        f"Validate all breaking fields return to original values. "
-        f"Re-run ContractGenerator to re-establish baselines."
+        f"Revert producer to state before snapshot {new_snapshot_name}. "
+        f"Re-run ContractGenerator to re-establish baselines. "
+        f"Re-run ValidationRunner on all consumer datasets. "
+        f"Notify registry subscribers that rollback is complete."
     ) if breaking else "No rollback required — all changes are safe."
 
     return {
@@ -281,14 +358,16 @@ def generate_migration_report(
             "new": new_snapshot_name
         },
         "summary": {
-            "total_changes":   len(changes_with_class),
+            "total_changes":    len(changes_with_class),
             "breaking_changes": len(breaking),
-            "safe_changes":    len(safe)
+            "safe_changes":     len(safe),
+            "consumers_affected": len(consumer_analysis)
         },
-        "changes_detected":    changes_with_class,
-        "blast_radius":        blast_radius,
-        "migration_checklist": checklist,
-        "rollback_plan":       rollback
+        "changes_detected":     changes_with_class,
+        "consumer_analysis":    consumer_analysis,
+        "blast_radius":         blast_radius,
+        "migration_checklist":  checklist,
+        "rollback_plan":        rollback
     }
 
 
@@ -378,10 +457,11 @@ def main():
     if args.output:
         output_path = args.output
     else:
+        timestamp   = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
         output_path = os.path.join(
             REPORTS_DIR,
-            f"schema_evolution_{contract_id.replace('-', '_')}.json"
-        )
+        f"migration_impact_{contract_id}_{timestamp}.json"
+    )
 
     with open(output_path, "w") as f:
         json.dump(report, f, indent=2)
