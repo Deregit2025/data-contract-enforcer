@@ -1,0 +1,489 @@
+apiVersion: v3.0.0
+id: langsmith-trace-records
+info:
+  description: Auto-generated contract for LangSmith Trace Records — Week 3 Extraction
+    Runs. Generated at 2026-04-03T13:00:26.298497+00:00.
+  owner: langsmith
+  title: LangSmith Trace Records — Week 3 Extraction Runs
+  version: 1.0.0
+kind: DataContract
+lineage:
+  downstream: []
+  upstream: []
+llm_annotations:
+  completion_tokens:
+    business_rule: value must be a non-negative integer; value = 0 indicates no completion
+      was generated
+    cross_column_relationship: completion_tokens + prompt_tokens = total_tokens; contributes
+      to total_cost calculation
+    description: Number of tokens generated in the model's response/completion for
+      this trace run
+  error:
+    business_rule: value can be null or empty array when no errors occurred; may contain
+      array of error objects or strings when extraction failed
+    cross_column_relationship: typically null/empty when outputs_chunks and outputs_facts_extracted
+      contain valid data; populated when extraction between start_time and end_time
+      encounters failures
+    description: Error messages or exceptions encountered during the LangSmith trace
+      extraction run, capturing any failures or issues that occurred while processing
+      chunks and extracting facts
+  id:
+    business_rule: Must be a valid UUID v4 format (8-4-4-4-12 hexadecimal characters)
+    cross_column_relationship: Primary key that uniquely identifies each row; references
+      the specific run identified by 'name' and 'run_type'
+    description: Unique identifier for each trace record in the LangSmith system,
+      representing individual extraction run instances
+  inputs_doc_id:
+    business_rule: value must be a non-empty string representing a valid document
+      name or identifier
+    cross_column_relationship: serves as the primary input document reference for
+      the trace run; related to inputs_origin_type which likely specifies the document
+      source type
+    description: Document identifier or filename representing the source document
+      being processed in the LangSmith trace run
+  inputs_layout_complexity:
+    business_rule: value must be one of predefined layout complexity types (e.g.,
+      'figure_heavy', 'single_column', 'multi_column', 'table_heavy')
+    cross_column_relationship: related to inputs_strategy which may define how different
+      layout complexities are processed; influences outputs_chunks as complex layouts
+      may result in different chunking patterns
+    description: Categorizes the visual and structural complexity of the input document
+      layout, indicating whether it contains heavy figures/graphics, single column
+      text, or other layout patterns
+  inputs_origin_type:
+    business_rule: 'value must be one of: ''scanned_image'', ''native_digital'', ''mixed'';
+      cannot be null'
+    cross_column_relationship: relates to inputs_strategy and inputs_layout_complexity
+      as origin type influences extraction strategy selection and complexity assessment;
+      groups with other inputs_* columns as part of trace input metadata
+    description: The origin type or source format of the input document being processed,
+      indicating whether it was originally a scanned physical document, digitally
+      created, or a combination of both formats
+  inputs_source_path:
+    business_rule: Must be a valid file path string ending with .pdf extension, following
+      pattern 'data/raw\\[filename].pdf'
+    cross_column_relationship: Should correspond to inputs_source_hash which likely
+      contains a hash/checksum of the file at this path; may relate to parent_run_id
+      for tracking processing lineage
+    description: File system path to the source PDF document being processed, located
+      in the data/raw directory
+  inputs_strategy:
+    business_rule: value must be a non-empty string following the pattern 'ExtractorName'
+      or 'ExtractorName(model_provider/model_name)'
+    cross_column_relationship: relates to inputs_layout_complexity as different strategies
+      may be selected based on document complexity; correlated with inputs_origin_type
+      as extraction method may depend on document source format
+    description: The extraction strategy or method used to process the document, typically
+      indicating the algorithm and model (e.g., VisionExtractor with specific AI model
+      or FastTextExtractor)
+  name:
+    business_rule: Must be a non-empty string ending with '::pipeline' suffix; typically
+      follows pattern 'document_name::pipeline'
+    cross_column_relationship: The prefix before '::pipeline' likely corresponds to
+      or derives from the document referenced in inputs_doc_id column
+    description: Name identifier for document processing pipeline runs, formatted
+      as document title followed by '::pipeline' suffix
+  outputs_chunks:
+    business_rule: value must be a positive integer greater than 0
+    cross_column_relationship: should be null when outputs_status indicates failure
+      or when error is present; higher values may correlate with higher inputs_layout_complexity
+    description: Number of chunks or segments the document was divided into during
+      the extraction process
+  outputs_confidence_mean:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive
+    cross_column_relationship: should only be populated when outputs_entities_extracted
+      contains extracted entities; confidence scores correspond to entities extracted
+      from the source file identified by inputs_source_path and inputs_source_hash
+    description: The average confidence score for entities extracted during the LangSmith
+      trace run, representing the model's certainty in its extraction results
+  outputs_entities_extracted:
+    business_rule: value must be a non-negative integer, typically greater than 0
+      when extraction is successful
+    cross_column_relationship: Should correspond to the number of confidence scores
+      that contribute to outputs_confidence_mean; may correlate with complexity of
+      inputs_source_hash content
+    description: The number of entities extracted from the input text during the LangSmith
+      trace execution in week 3
+  outputs_facts_extracted:
+    business_rule: value must be a non-negative integer; typically greater than 0
+      when outputs_status indicates success
+    cross_column_relationship: should be 0 or null when error is present; expected
+      to correlate with outputs_chunks (more chunks may yield more facts); only populated
+      when outputs_status indicates successful completion
+    description: The number of facts successfully extracted from the processed chunks
+      during the LangSmith trace execution
+  outputs_status:
+    business_rule: 'value must be one of: SUCCESS, FAILURE, ERROR, TIMEOUT, or similar
+      status enum values'
+    cross_column_relationship: when outputs_status is SUCCESS, outputs_chunks and
+      outputs_facts_extracted should contain non-null values; when status is FAILURE
+      or ERROR, output columns may be null or empty
+    description: Execution status of the LangSmith trace extraction run indicating
+      whether the output generation completed successfully or encountered an error
+  parent_run_id:
+    business_rule: Must be a valid UUID v4 format (8-4-4-4-12 hexadecimal pattern)
+      or null for root-level runs
+    cross_column_relationship: References another run_id within the same table; null
+      when trace is a top-level parent run; related to session_id which groups multiple
+      run hierarchies
+    description: Unique identifier (UUID) of the parent trace run in a hierarchical
+      execution chain, linking child runs to their originating parent run in LangSmith
+      tracing
+  prompt_tokens:
+    business_rule: Must be a non-negative integer; typically greater than 0 for successful
+      LLM calls
+    cross_column_relationship: prompt_tokens + completion_tokens should equal total_tokens;
+      contributes to total_cost calculation
+    description: Number of input tokens sent to the language model as part of the
+      prompt during a trace execution
+  run_type:
+    business_rule: value must be a non-null string from a predefined set of run types
+      (e.g., 'llm', 'chain', 'tool', 'retriever', 'embedding')
+    cross_column_relationship: determines the expected structure and content of the
+      inputs columns (inputs_doc_id, inputs_strategy); 'llm' runs typically have different
+      input patterns than 'chain' runs
+    description: The type or category of execution run in the LangSmith tracing system,
+      indicating whether the traced operation is a language model call, a chain of
+      operations, or another component type
+  session_id:
+    business_rule: Must be a valid UUID (version 4 format), non-null, consisting of
+      36 characters with hyphens in standard UUID positions (8-4-4-4-12)
+    cross_column_relationship: Groups multiple runs together when same session_id
+      appears across multiple rows; may relate to parent_run_id for hierarchical run
+      relationships within the same session
+    description: Unique identifier for a LangSmith tracing session, representing a
+      distinct execution or conversation thread tracked in the system
+  tags_count:
+    business_rule: value must be a non-negative integer, typically greater than or
+      equal to 0
+    cross_column_relationship: independent metric that supplements trace metadata;
+      no direct dependency on adjacent columns (completion_tokens, total_cost, parent_run_id,
+      session_id)
+    description: The number of tags associated with a trace run record, used for categorization
+      and filtering of execution traces
+  total_cost:
+    business_rule: value must be >= 0 (non-negative decimal); typically null only
+      if token counts are unavailable
+    cross_column_relationship: derived from prompt_tokens and completion_tokens multiplied
+      by respective token rates; should be 0 when both token counts are 0
+    description: The total cost in dollars incurred for the LLM API call, calculated
+      based on prompt and completion token usage and model pricing
+  total_tokens:
+    business_rule: value must be a non-negative integer; value should equal zero only
+      when no LLM call was made or both prompt_tokens and completion_tokens are zero
+    cross_column_relationship: total_tokens should equal prompt_tokens + completion_tokens;
+      should be zero when extraction run failed or did not invoke LLM
+    description: The total number of tokens consumed in a LangSmith trace run, typically
+      representing the sum of prompt tokens and completion tokens used in an LLM API
+      call
+quality:
+  specification:
+    checks for langsmith-trace-records:
+    - row_count >= 1
+    - missing_count(id) = 0
+    - duplicate_count(id) = 0
+    - missing_count(name) = 0
+    - missing_count(run_type) = 0
+    - missing_count(inputs_doc_id) = 0
+    - missing_count(outputs_facts_extracted) = 0
+    - duplicate_count(error) = 0
+    - missing_count(start_time) = 0
+    - missing_count(end_time) = 0
+    - missing_count(total_tokens) = 0
+    - missing_count(prompt_tokens) = 0
+    - missing_count(completion_tokens) = 0
+    - missing_count(total_cost) = 0
+    - missing_count(tags_count) = 0
+    - duplicate_count(parent_run_id) = 0
+    - missing_count(session_id) = 0
+    - duplicate_count(session_id) = 0
+  type: SodaChecks
+schema:
+  completion_tokens:
+    business_rule: value must be a non-negative integer; value = 0 indicates no completion
+      was generated
+    description: Number of tokens generated in the model's response/completion for
+      this trace run
+    maximum: 2147.0
+    minimum: 0.0
+    required: true
+    type: integer
+  end_time:
+    description: Column end_time
+    format: date-time
+    required: true
+    type: string
+  error:
+    business_rule: value can be null or empty array when no errors occurred; may contain
+      array of error objects or strings when extraction failed
+    description: Error messages or exceptions encountered during the LangSmith trace
+      extraction run, capturing any failures or issues that occurred while processing
+      chunks and extracting facts
+    format: uuid
+    required: false
+    type: string
+  id:
+    business_rule: Must be a valid UUID v4 format (8-4-4-4-12 hexadecimal characters)
+    description: Unique identifier for each trace record in the LangSmith system,
+      representing individual extraction run instances
+    format: uuid
+    required: true
+    type: string
+  inputs_doc_id:
+    business_rule: value must be a non-empty string representing a valid document
+      name or identifier
+    description: Document identifier or filename representing the source document
+      being processed in the LangSmith trace run
+    required: true
+    type: string
+  inputs_layout_complexity:
+    business_rule: value must be one of predefined layout complexity types (e.g.,
+      'figure_heavy', 'single_column', 'multi_column', 'table_heavy')
+    description: Categorizes the visual and structural complexity of the input document
+      layout, indicating whether it contains heavy figures/graphics, single column
+      text, or other layout patterns
+    required: false
+    type: string
+  inputs_origin_type:
+    business_rule: 'value must be one of: ''scanned_image'', ''native_digital'', ''mixed'';
+      cannot be null'
+    description: The origin type or source format of the input document being processed,
+      indicating whether it was originally a scanned physical document, digitally
+      created, or a combination of both formats
+    required: false
+    type: string
+  inputs_source_hash:
+    description: Column inputs_source_hash
+    pattern: ^[a-f0-9]{64}$
+    required: false
+    type: string
+  inputs_source_path:
+    business_rule: Must be a valid file path string ending with .pdf extension, following
+      pattern 'data/raw\\[filename].pdf'
+    description: File system path to the source PDF document being processed, located
+      in the data/raw directory
+    required: false
+    type: string
+  inputs_strategy:
+    business_rule: value must be a non-empty string following the pattern 'ExtractorName'
+      or 'ExtractorName(model_provider/model_name)'
+    description: The extraction strategy or method used to process the document, typically
+      indicating the algorithm and model (e.g., VisionExtractor with specific AI model
+      or FastTextExtractor)
+    required: false
+    type: string
+  name:
+    business_rule: Must be a non-empty string ending with '::pipeline' suffix; typically
+      follows pattern 'document_name::pipeline'
+    description: Name identifier for document processing pipeline runs, formatted
+      as document title followed by '::pipeline' suffix
+    required: true
+    type: string
+  outputs_chunks:
+    business_rule: value must be a positive integer greater than 0
+    description: Number of chunks or segments the document was divided into during
+      the extraction process
+    maximum: 246.0
+    minimum: 7.0
+    required: false
+    type: number
+  outputs_confidence_mean:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive
+    description: The average confidence score for entities extracted during the LangSmith
+      trace run, representing the model's certainty in its extraction results
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  outputs_entities_extracted:
+    business_rule: value must be a non-negative integer, typically greater than 0
+      when extraction is successful
+    description: The number of entities extracted from the input text during the LangSmith
+      trace execution in week 3
+    maximum: 24.0
+    minimum: 5.0
+    required: false
+    type: number
+  outputs_facts_extracted:
+    business_rule: value must be a non-negative integer; typically greater than 0
+      when outputs_status indicates success
+    description: The number of facts successfully extracted from the processed chunks
+      during the LangSmith trace execution
+    maximum: 13.0
+    minimum: 5.0
+    required: true
+    type: integer
+  outputs_status:
+    business_rule: 'value must be one of: SUCCESS, FAILURE, ERROR, TIMEOUT, or similar
+      status enum values'
+    description: Execution status of the LangSmith trace extraction run indicating
+      whether the output generation completed successfully or encountered an error
+    required: false
+    type: string
+  parent_run_id:
+    business_rule: Must be a valid UUID v4 format (8-4-4-4-12 hexadecimal pattern)
+      or null for root-level runs
+    description: Unique identifier (UUID) of the parent trace run in a hierarchical
+      execution chain, linking child runs to their originating parent run in LangSmith
+      tracing
+    format: uuid
+    required: false
+    type: string
+  prompt_tokens:
+    business_rule: Must be a non-negative integer; typically greater than 0 for successful
+      LLM calls
+    description: Number of input tokens sent to the language model as part of the
+      prompt during a trace execution
+    maximum: 7165.0
+    minimum: 0.0
+    required: true
+    type: integer
+  run_type:
+    business_rule: value must be a non-null string from a predefined set of run types
+      (e.g., 'llm', 'chain', 'tool', 'retriever', 'embedding')
+    description: The type or category of execution run in the LangSmith tracing system,
+      indicating whether the traced operation is a language model call, a chain of
+      operations, or another component type
+    required: true
+    type: string
+  session_id:
+    business_rule: Must be a valid UUID (version 4 format), non-null, consisting of
+      36 characters with hyphens in standard UUID positions (8-4-4-4-12)
+    description: Unique identifier for a LangSmith tracing session, representing a
+      distinct execution or conversation thread tracked in the system
+    format: uuid
+    required: true
+    type: string
+  start_time:
+    description: Column start_time
+    format: date-time
+    required: true
+    type: string
+  tags_count:
+    business_rule: value must be a non-negative integer, typically greater than or
+      equal to 0
+    description: The number of tags associated with a trace run record, used for categorization
+      and filtering of execution traces
+    maximum: 2.0
+    minimum: 2.0
+    required: true
+    type: integer
+  total_cost:
+    business_rule: value must be >= 0 (non-negative decimal); typically null only
+      if token counts are unavailable
+    description: The total cost in dollars incurred for the LLM API call, calculated
+      based on prompt and completion token usage and model pricing
+    maximum: 0.035
+    minimum: 0.0
+    required: true
+    type: number
+  total_tokens:
+    business_rule: value must be a non-negative integer; value should equal zero only
+      when no LLM call was made or both prompt_tokens and completion_tokens are zero
+    description: The total number of tokens consumed in a LangSmith trace run, typically
+      representing the sum of prompt tokens and completion tokens used in an LLM API
+      call
+    maximum: 8660.0
+    minimum: 0.0
+    required: true
+    type: integer
+servers:
+  local:
+    format: jsonl
+    path: outputs/traces/runs.jsonl
+    type: local
+statistics:
+  completion_tokens:
+    max: 2147.0
+    mean: 512.3462
+    min: 0.0
+    p25: 0.0
+    p50: 327.5
+    p75: 879.75
+    p95: 1430.75
+    p99: 1984.0
+    stddev: 596.2377
+  outputs_chunks:
+    max: 246.0
+    mean: 85.6923
+    min: 7.0
+    p25: 10.0
+    p50: 10.0
+    p75: 103.0
+    p95: 246.0
+    p99: 246.0
+    stddev: 99.3993
+  outputs_confidence_mean:
+    flag: OK
+    max: 1.0
+    mean: 0.9355
+    min: 0.8813
+    p25: 0.8929
+    p50: 0.9
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.0503
+  outputs_entities_extracted:
+    max: 24.0
+    mean: 10.1538
+    min: 5.0
+    p25: 6.0
+    p50: 10.0
+    p75: 11.0
+    p95: 19.8
+    p99: 23.16
+    stddev: 5.2891
+  outputs_facts_extracted:
+    max: 13.0
+    mean: 7.3077
+    min: 5.0
+    p25: 5.0
+    p50: 7.0
+    p75: 8.0
+    p95: 12.25
+    p99: 13.0
+    stddev: 2.3794
+  prompt_tokens:
+    max: 7165.0
+    mean: 2752.3846
+    min: 0.0
+    p25: 0.0
+    p50: 2043.5
+    p75: 5283.75
+    p95: 7165.0
+    p99: 7165.0
+    stddev: 2895.2387
+  tags_count:
+    max: 2.0
+    mean: 2.0
+    min: 2.0
+    p25: 2.0
+    p50: 2.0
+    p75: 2.0
+    p95: 2.0
+    p99: 2.0
+    stddev: 0.0
+  total_cost:
+    max: 0.035
+    mean: 0.012
+    min: 0.0
+    p25: 0.0
+    p50: 0.0086
+    p75: 0.022
+    p95: 0.0318
+    p99: 0.0345
+    stddev: 0.0128
+  total_tokens:
+    max: 8660.0
+    mean: 3264.7308
+    min: 0.0
+    p25: 0.0
+    p50: 2397.5
+    p75: 6145.0
+    p95: 8215.0
+    p99: 8550.5
+    stddev: 3435.3647
+terms:
+  limitations: Do not modify field types without updating downstream consumers.
+  usage: Internal inter-system data contract.

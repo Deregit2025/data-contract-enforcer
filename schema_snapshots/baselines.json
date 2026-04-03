@@ -386,5 +386,61 @@
       "min": 1.0,
       "max": 1.0
     }
+  },
+  "langsmith-trace-records": {
+    "outputs_chunks": {
+      "mean": 85.6923,
+      "stddev": 99.3993,
+      "min": 7.0,
+      "max": 246.0
+    },
+    "outputs_facts_extracted": {
+      "mean": 7.3077,
+      "stddev": 2.3794,
+      "min": 5.0,
+      "max": 13.0
+    },
+    "total_tokens": {
+      "mean": 3264.7308,
+      "stddev": 3435.3647,
+      "min": 0.0,
+      "max": 8660.0
+    },
+    "prompt_tokens": {
+      "mean": 2752.3846,
+      "stddev": 2895.2387,
+      "min": 0.0,
+      "max": 7165.0
+    },
+    "completion_tokens": {
+      "mean": 512.3462,
+      "stddev": 596.2377,
+      "min": 0.0,
+      "max": 2147.0
+    },
+    "total_cost": {
+      "mean": 0.012,
+      "stddev": 0.0128,
+      "min": 0.0,
+      "max": 0.035
+    },
+    "tags_count": {
+      "mean": 2.0,
+      "stddev": 0.0,
+      "min": 2.0,
+      "max": 2.0
+    },
+    "outputs_confidence_mean": {
+      "mean": 0.9355,
+      "stddev": 0.0503,
+      "min": 0.8813,
+      "max": 1.0
+    },
+    "outputs_entities_extracted": {
+      "mean": 10.1538,
+      "stddev": 5.2891,
+      "min": 5.0,
+      "max": 24.0
+    }
   }
 }
