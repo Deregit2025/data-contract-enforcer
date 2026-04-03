@@ -530,7 +530,7 @@ CONTRACT_CONFIGS = {
         "title":       "Week 4 Brownfield Cartographer — Lineage Snapshots"
     },
     "outputs/traces/runs.jsonl": {
-        "contract_id": "langsmith-trace-records",
+        "contract_id": "langsmith-traces",
         "title":       "LangSmith Trace Records — Week 3 Extraction Runs"
     },
 }
