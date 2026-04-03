@@ -409,12 +409,162 @@ def flatten_for_runner(records, contract_id):
 
     return pd.DataFrame(flat)
 
+# -------------------------------
+# week 1 and week 2 checks
+#----------------------------
+
+def check_cross_system_w1_w2(intent_records_path, verdict_records_path, check_id):
+    """
+    Week 1 → Week 2 cross-system check.
+    Every verdict.target_ref must match a file in
+    some intent_record.code_refs[*].file.
+    """
+    try:
+        intent_files = set()
+        if os.path.exists(intent_records_path):
+            with open(intent_records_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        record = json.loads(line)
+                        for ref in record.get("code_refs", []):
+                            if ref.get("file"):
+                                intent_files.add(ref["file"])
+
+        if not intent_files:
+            return make_result(
+                check_id,
+                "verdict.target_ref",
+                "cross_system_referential",
+                "ERROR", None,
+                actual="no intent files loaded",
+                expected="intent_records present",
+                message="Week 1 intent_records.jsonl not found or empty"
+            )
+
+        verdict_records = load_jsonl(verdict_records_path)
+        failing      = 0
+        sample_fails = []
+
+        for record in verdict_records:
+            target_ref = record.get("target_ref", "")
+            if target_ref and not any(
+                target_ref in f or f in target_ref
+                for f in intent_files
+            ):
+                failing += 1
+                if len(sample_fails) < 2:
+                    sample_fails.append(target_ref)
+
+        status = "WARN" if failing > 0 else "PASS"
+        return make_result(
+            check_id,
+            "verdict.target_ref → intent.code_refs[*].file",
+            "cross_system_referential",
+            status,
+            "MEDIUM" if failing > 0 else None,
+            actual=f"{failing} target_refs not found in intent code_refs",
+            expected="all target_refs match an intent code_refs file",
+            records_failing=failing,
+            sample_failing=sample_fails,
+            message=(
+                f"{failing} verdict target_refs do not match "
+                f"any intent code_refs file path"
+            )
+        )
+    except Exception as e:
+        return make_result(
+            check_id,
+            "verdict.target_ref",
+            "cross_system_referential",
+            "ERROR", None,
+            actual=str(e),
+            expected="cross-system check executed",
+            message=f"Cross-system check failed: {e}"
+        )
+
+
+def check_cross_system_w3_w4(extractions_path, lineage_path, check_id):
+    """
+    Week 3 → Week 4 cross-system check.
+    doc_id values from extraction_records should
+    appear as nodes in the lineage_snapshot.
+    """
+    try:
+        # load extraction doc_ids
+        doc_ids = set()
+        if os.path.exists(extractions_path):
+            with open(extractions_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        record = json.loads(line)
+                        if record.get("doc_id"):
+                            doc_ids.add(record["doc_id"])
+
+        if not doc_ids:
+            return make_result(
+                check_id,
+                "lineage_snapshot.nodes → extraction.doc_id",
+                "cross_system_referential",
+                "ERROR", None,
+                actual="no doc_ids loaded",
+                expected="extraction records present",
+                message="Week 3 extractions not found or empty"
+            )
+
+        # load lineage node ids
+        node_ids = set()
+        if os.path.exists(lineage_path):
+            with open(lineage_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        snapshot = json.loads(line)
+                        for node in snapshot.get("nodes", []):
+                            node_ids.add(node.get("node_id", ""))
+
+        # check how many doc_ids appear in lineage
+        matched  = sum(
+            1 for d in doc_ids
+            if any(d in n for n in node_ids)
+        )
+        coverage = round(matched / len(doc_ids), 2) if doc_ids else 0
+
+        # warn if less than 50% of docs appear in lineage
+        status = "PASS" if coverage >= 0.5 else "WARN"
+
+        return make_result(
+            check_id,
+            "lineage_snapshot.nodes → extraction.doc_id",
+            "cross_system_referential",
+            status,
+            "MEDIUM" if status == "WARN" else None,
+            actual=f"{matched}/{len(doc_ids)} doc_ids found in lineage",
+            expected="doc_ids from extractions appear as lineage nodes",
+            records_failing=len(doc_ids) - matched,
+            message=(
+                f"{matched} of {len(doc_ids)} extraction doc_ids "
+                f"found in lineage graph ({coverage:.0%} coverage)"
+            )
+        )
+    except Exception as e:
+        return make_result(
+            check_id,
+            "lineage_snapshot.nodes → extraction.doc_id",
+            "cross_system_referential",
+            "ERROR", None,
+            actual=str(e),
+            expected="cross-system check executed",
+            message=f"Cross-system check failed: {e}"
+        )
+
 
 # ─────────────────────────────────────────
 # RUN ALL CHECKS
 # ─────────────────────────────────────────
 
-def run_checks(contract, records, contract_id):
+def run_checks(contract, records, contract_id, data_path=""):
     df      = flatten_for_runner(records, contract_id)
     results = []
     schema  = contract.get("schema", {})
@@ -494,6 +644,14 @@ def run_checks(contract, records, contract_id):
                 f"{contract_id}.entity_refs.integrity"
             )
         )
+        # cross-system week3 → week4
+        results.append(
+            check_cross_system_w3_w4(
+                data_path,
+                "outputs/week4/lineage_snapshots.jsonl",
+                f"{contract_id}.doc_id.cross_system_w4"
+            )
+        )
 
     # ── week5 specific ──
     if "week5" in contract_id:
@@ -508,6 +666,16 @@ def run_checks(contract, records, contract_id):
                 records,
                 "occurred_at", "recorded_at",
                 f"{contract_id}.timestamps.order"
+            )
+        )
+
+    # ── cross-system week1 → week2 ──
+    if "week2" in contract_id:
+        results.append(
+            check_cross_system_w1_w2(
+                "outputs/week1/intent_records.jsonl",
+                data_path,
+                f"{contract_id}.target_ref.cross_system_w1"
             )
         )
 
@@ -553,7 +721,7 @@ def main():
     print(f"  Contract: {args.contract}")
 
     # run all checks
-    results = run_checks(contract, records, contract_id)
+    results = run_checks(contract, records, contract_id, args.data)
 
     # tally results
     passed  = sum(1 for r in results if r["status"] == "PASS")
