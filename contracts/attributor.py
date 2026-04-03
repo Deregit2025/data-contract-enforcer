@@ -64,6 +64,46 @@ def load_lineage_graph():
     print(f"  Lineage graph loaded: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
     return G, node_map
 
+import yaml
+
+REGISTRY_PATH = "contract_registry/subscriptions.yaml"
+
+def load_registry_subscribers(contract_id, failing_field=None):
+    if not os.path.exists(REGISTRY_PATH):
+        print(f"  WARNING: registry not found at {REGISTRY_PATH}")
+        return []
+    try:
+        with open(REGISTRY_PATH) as f:
+            registry = yaml.safe_load(f)
+        subscriptions = registry.get("subscriptions", [])
+        matched = []
+        for sub in subscriptions:
+            if sub.get("contract_id") != contract_id:
+                continue
+            if failing_field:
+                breaking = sub.get("breaking_fields", [])
+                breaking_field_names = [
+                    b.get("field", "") for b in breaking
+                    if isinstance(b, dict)
+                ]
+                field_parts = failing_field.replace(".", "_").split("_")
+                field_matched = False
+                for bf in breaking_field_names:
+                    bf_parts = bf.replace(".", "_").split("_")
+                    if any(p in bf_parts or p in bf for p in field_parts):
+                        field_matched = True
+                        break
+                if not field_matched:
+                    continue
+            matched.append(sub)
+        return matched
+    except Exception as e:
+        print(f"  WARNING: registry load failed: {e}")
+        return []
+
+    except Exception as e:
+        print(f"  WARNING: registry load failed: {e}")
+        return []
 
 # ─────────────────────────────────────────
 # STEP 1 — LINEAGE TRAVERSAL
@@ -303,13 +343,9 @@ def build_blame_chain(upstream_files, G):
 # ─────────────────────────────────────────
 
 def process_violation(report, G, node_map, output_path):
-    """
-    Process each FAIL result in the report
-    and write violation records.
-    """
-    contract_id    = report.get("contract_id", "unknown")
-    run_timestamp  = report.get("run_timestamp", "")
-    fail_results   = [
+    contract_id   = report.get("contract_id", "unknown")
+    run_timestamp = report.get("run_timestamp", "")
+    fail_results  = [
         r for r in report.get("results", [])
         if r.get("status") == "FAIL"
     ]
@@ -320,20 +356,41 @@ def process_violation(report, G, node_map, output_path):
 
     print(f"  Found {len(fail_results)} FAIL results")
 
-    # find upstream producers and downstream consumers
+    # step 1 — registry blast radius query (primary source)
+    # get the failing field from the first FAIL result
+    first_fail   = fail_results[0]
+    failing_field = first_fail.get("column_name", "")
+    subscribers  = load_registry_subscribers(
+        contract_id, failing_field
+    )
+    print(f"  Registry subscribers affected: {len(subscribers)}")
+
+    registry_blast_radius = {
+        "subscribers": [
+            {
+                "subscriber_id":   s.get("subscriber_id"),
+                "subscriber_team": s.get("subscriber_team"),
+                "validation_mode": s.get("validation_mode"),
+                "contact":         s.get("contact"),
+                "breaking_fields": s.get("breaking_fields", [])
+            }
+            for s in subscribers
+        ],
+        "subscriber_count": len(subscribers)
+    }
+
+    # step 2 — lineage traversal for enrichment
     upstream   = find_upstream_producers(G, contract_id)
     downstream_nodes, downstream_pipelines = find_downstream_consumers(
         G, contract_id
     )
+    print(f"  Lineage enrichment — upstream: {len(upstream)}, downstream: {len(downstream_nodes)}")
 
-    print(f"  Upstream producers: {len(upstream)}")
-    print(f"  Downstream nodes: {len(downstream_nodes)}")
-
-    # build blame chain once for all violations
+    # step 3 — git blame
     blame_chain = build_blame_chain(upstream, G)
     print(f"  Blame chain candidates: {len(blame_chain)}")
 
-    # write one violation record per FAIL
+    # step 4 — write violation log
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     written = 0
@@ -349,16 +406,20 @@ def process_violation(report, G, node_map, output_path):
                 "message":      result.get("message", ""),
                 "blame_chain":  blame_chain,
                 "blast_radius": {
-                    "affected_nodes":     downstream_nodes[:5],
+                    # registry is primary source
+                    "registry":          registry_blast_radius,
+                    # lineage is enrichment
+                    "affected_nodes":    downstream_nodes[:5],
                     "affected_pipelines": downstream_pipelines[:3],
-                    "estimated_records":  records_failing
+                    "estimated_records": records_failing,
+                    "contamination_depth": len(downstream_nodes)
                 }
             }
 
             f.write(json.dumps(violation) + "\n")
             written += 1
 
-    print(f"  Written {written} violation records to {output_path}")
+    print(f"  Written {written} violation records")
     return written
 
 
