@@ -1,0 +1,40 @@
+models:
+- columns:
+  - name: verdict_id
+    tests:
+    - not_null
+    - unique
+  - name: target_ref
+    tests:
+    - not_null
+  - name: rubric_id
+    tests:
+    - not_null
+  - name: rubric_version
+    tests:
+    - not_null
+  - name: overall_verdict
+    tests:
+    - not_null
+    - accepted_values:
+        values:
+        - PASS
+        - FAIL
+        - WARN
+  - name: overall_score
+    tests:
+    - not_null
+  - name: confidence
+    tests:
+    - not_null
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: evaluated_at
+    tests:
+    - not_null
+  - name: is_synthetic
+    tests: []
+  description: Week 2 Digital Courtroom — Verdict Records
+  name: week2_digital_courtroom
+version: 2

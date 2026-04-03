@@ -1,0 +1,77 @@
+captured_at: '2026-04-03T07:59:45.816557+00:00'
+fields:
+  captured_at:
+    description: Column captured_at
+    format: date-time
+    required: true
+    type: string
+  codebase_root:
+    business_rule: Must be a valid absolute file path string; should exist and be
+      accessible; typically follows OS-specific path conventions (backslash for Windows,
+      forward slash for Unix/Linux)
+    description: The absolute file system path to the root directory of the codebase
+      being analyzed for lineage tracking
+    required: true
+    type: string
+  edges_confidence_max:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive, typically
+      1.0 indicates full confidence
+    description: Maximum confidence score among all lineage edges in the snapshot,
+      representing the highest certainty level of data lineage relationships captured
+      at a point in time
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  edges_confidence_mean:
+    business_rule: value must be a decimal number between 0.0 and 1.0 inclusive; should
+      be greater than or equal to edges_confidence_min and less than or equal to edges_confidence_max
+    description: The average confidence score across all lineage edges in the snapshot,
+      representing the mean reliability or certainty of data lineage relationships
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  edges_confidence_min:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive; must be
+      less than or equal to edges_confidence_mean and edges_confidence_max
+    description: Minimum confidence score across all lineage edges in the snapshot,
+      representing the lowest level of certainty in any data lineage relationship
+      captured during this observation period
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  edges_count:
+    business_rule: value must be a non-negative integer; value should be >= 0 and
+      typically correlates with nodes_count
+    description: The total count of edges (connections/relationships) in the data
+      lineage graph snapshot for a given git commit
+    maximum: 87.0
+    minimum: 87.0
+    required: true
+    type: integer
+  git_commit:
+    business_rule: value must be a 40-character hexadecimal string (SHA-1 hash format)
+    description: Git commit SHA hash identifier that represents the version of the
+      codebase at the time the lineage snapshot was captured
+    required: true
+    type: string
+  nodes_count:
+    business_rule: value must be a positive integer greater than 0
+    description: The total count of nodes in the data lineage graph snapshot, where
+      each node represents a data entity (e.g., table, view, dataset) in the codebase
+      at a specific git commit
+    maximum: 51.0
+    minimum: 51.0
+    required: true
+    type: integer
+  snapshot_id:
+    business_rule: Must be a valid UUID v4 format (8-4-4-4-12 hexadecimal characters);
+      must be unique across all snapshots; cannot be null
+    description: Unique identifier for each lineage snapshot capture, representing
+      a specific point-in-time recording of the codebase lineage state
+    format: uuid
+    required: true
+    type: string
+snapshot_id: week4-brownfield-cartographer
