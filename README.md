@@ -103,6 +103,25 @@ OPENROUTER_API_KEY=your_key_here
 python migrations/migrate_all.py
 ```
 
+### 6. Generate LangSmith trace data (Week 3 extraction runs)
+
+Derives real trace records from extractor_ai execution history.
+Requires the extractor_ai project at `../extractor_ai/`.
+
+```bash
+python migrations/migrate_traces.py
+# Expected: outputs/traces/runs.jsonl — 52 records (13 chain + 13 llm + 26 sub-traces)
+# Verify: python -c "import json; lines=open('outputs/traces/runs.jsonl').readlines(); print(len(lines))"
+```
+
+Then generate the LangSmith contract:
+
+```bash
+python contracts/generator.py --source outputs/traces/runs.jsonl
+# Expected: generated_contracts/langsmith_traces.yaml
+#           schema_snapshots/langsmith-traces/<timestamp>.yaml
+```
+
 ---
 
 ## Running Each Script

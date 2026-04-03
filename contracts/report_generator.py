@@ -34,23 +34,24 @@ def load_validation_reports():
     Load all validation report JSON files.
     Skip schema evolution and ai_metrics files.
     """
-    reports = []
+    latest: dict = {}   # contract_id → most recent report
     pattern = os.path.join(VALIDATION_REPORTS_DIR, "*.json")
     for path in glob.glob(pattern):
         fname = os.path.basename(path)
-        # skip non-validation files
-        if any(x in fname for x in [
-            "schema_evolution", "ai_metrics"
-        ]):
+        if any(x in fname for x in ["schema_evolution", "ai_metrics", "migration_impact"]):
             continue
         try:
             with open(path) as f:
                 report = json.load(f)
-            if "total_checks" in report:
-                reports.append(report)
+            if "total_checks" not in report:
+                continue
+            cid = report.get("contract_id", fname)
+            ts  = report.get("run_timestamp", "")
+            if cid not in latest or ts > latest[cid].get("run_timestamp", ""):
+                latest[cid] = report
         except Exception:
             continue
-    return reports
+    return list(latest.values())
 
 
 def load_violations():
@@ -102,19 +103,25 @@ def compute_health_score(reports, violations):
     if not reports:
         return 0.0, "No validation reports found."
 
-    total_checks   = sum(r.get("total_checks", 0) for r in reports)
-    total_passed   = sum(r.get("passed", 0) for r in reports)
-    critical_count = sum(
-        1 for v in violations
-        if v.get("severity") == "CRITICAL"
-    )
+    total_checks = sum(r.get("total_checks", 0) for r in reports)
+    total_passed = sum(r.get("passed", 0) for r in reports)
 
     if total_checks == 0:
         return 0.0, "No checks were run."
 
+    # Severity deductions drawn from current report results (not historical log)
+    DEDUCTIONS = {"CRITICAL": 20, "HIGH": 10, "MEDIUM": 5, "LOW": 1}
+    current_fails = [
+        result
+        for rep in reports
+        for result in rep.get("results", [])
+        if result.get("status") in ("FAIL", "ERROR")
+    ]
+    critical_count = sum(1 for f in current_fails if f.get("severity") == "CRITICAL")
+
     raw_score = (total_passed / total_checks) * 100
-    score     = max(0.0, raw_score - (20 * critical_count))
-    score     = round(score, 1)
+    deduction = sum(DEDUCTIONS.get(f.get("severity", "LOW"), 1) for f in current_fails)
+    score     = round(max(0.0, min(100.0, raw_score - deduction)), 1)
 
     if score >= 90:
         narrative = (

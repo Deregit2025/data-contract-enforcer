@@ -54,3 +54,5 @@ desktop.ini
 # temporary files
 *.tmp
 *.temp
+
+docs/
