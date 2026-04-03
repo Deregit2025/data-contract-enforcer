@@ -1,0 +1,73 @@
+models:
+- columns:
+  - name: id
+    tests:
+    - not_null
+    - unique
+  - name: name
+    tests:
+    - not_null
+  - name: run_type
+    tests:
+    - not_null
+  - name: inputs_doc_id
+    tests:
+    - not_null
+  - name: inputs_strategy
+    tests: []
+  - name: inputs_origin_type
+    tests: []
+  - name: inputs_layout_complexity
+    tests: []
+  - name: outputs_status
+    tests: []
+  - name: outputs_chunks
+    tests: []
+  - name: outputs_facts_extracted
+    tests:
+    - not_null
+  - name: error
+    tests:
+    - unique
+  - name: start_time
+    tests:
+    - not_null
+  - name: end_time
+    tests:
+    - not_null
+  - name: total_tokens
+    tests:
+    - not_null
+  - name: prompt_tokens
+    tests:
+    - not_null
+  - name: completion_tokens
+    tests:
+    - not_null
+  - name: total_cost
+    tests:
+    - not_null
+  - name: tags_count
+    tests:
+    - not_null
+  - name: parent_run_id
+    tests:
+    - unique
+  - name: session_id
+    tests:
+    - not_null
+    - unique
+  - name: inputs_source_path
+    tests: []
+  - name: inputs_source_hash
+    tests: []
+  - name: outputs_confidence_mean
+    tests:
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: outputs_entities_extracted
+    tests: []
+  description: LangSmith Trace Records — Week 3 Extraction Runs
+  name: langsmith_trace_records
+version: 2
