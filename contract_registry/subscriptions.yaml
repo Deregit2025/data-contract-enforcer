@@ -1,0 +1,243 @@
+# contract_registry/subscriptions.yaml
+#
+# This file is the Contract Registry for the sentinel-contracts platform.
+# It records every inter-system data dependency formally.
+# Every consumer that depends on a contract must register here.
+#
+# This is the Tier 1 implementation of the registry pattern.
+# In Tier 2 (same company, multiple teams) this would be replaced
+# by a service like DataHub or OpenMetadata.
+# In Tier 3 (different companies) it would be a versioned API registry.
+#
+# Validation modes:
+#   ENFORCE → block pipeline on CRITICAL or HIGH violation
+#   WARN    → block on CRITICAL only, warn on HIGH/MEDIUM
+#   AUDIT   → log all violations, never block (default for new contracts)
+
+subscriptions:
+
+  # ── Week 3 → Week 4 ──────────────────────────────────────────────
+  # The Brownfield Cartographer consumes extraction records.
+  # doc_id becomes a node identifier in the lineage graph.
+  # extracted_facts become node metadata.
+  # confidence values become edge weights for node ranking.
+  # A scale change in confidence (0.0-1.0 → 0-100) breaks
+  # all edge weight logic in the cartographer silently.
+
+  - contract_id:      week3-document-refinery-extractions
+    subscriber_id:    week4-cartographer
+    subscriber_team:  week4
+    fields_consumed:
+      - doc_id
+      - extracted_facts
+      - extraction_model
+    breaking_fields:
+      - field:  extracted_facts.confidence
+        reason: >
+          Used for node ranking in the lineage graph.
+          A scale change from 0.0-1.0 to 0-100 makes all
+          edges appear maximally confident — the graph
+          loses all discriminative power.
+      - field:  doc_id
+        reason: >
+          Primary key for node identity in the lineage graph.
+          Renaming or reformatting this field breaks all
+          node lookups and edge traversals.
+      - field:  extraction_model
+        reason: >
+          Used to tag lineage nodes with the model that
+          produced them. A pattern change breaks model
+          attribution in the cartographer.
+    validation_mode:  ENFORCE
+    registered_at:    "2026-03-08T00:00:00Z"
+    contact:          week4-team@sentinel-contracts.internal
+
+  # ── Week 3 → Week 7 ──────────────────────────────────────────────
+  # The Data Contract Enforcer consumes extraction records
+  # for AI contract extensions — specifically embedding drift
+  # detection on extracted_facts[*].text values.
+
+  - contract_id:      week3-document-refinery-extractions
+    subscriber_id:    week7-enforcer
+    subscriber_team:  week7
+    fields_consumed:
+      - extracted_facts.confidence
+      - extracted_facts.text
+      - doc_id
+    breaking_fields:
+      - field:  extracted_facts.confidence
+        reason: >
+          AI extension embedding drift baseline is computed
+          from extracted_facts text. A confidence scale change
+          indicates the extractor behavior has changed which
+          invalidates the embedding baseline.
+      - field:  extracted_facts.text
+        reason: >
+          Embedding drift detection samples this field directly.
+          Any structural change to this field breaks the
+          drift detection pipeline.
+    validation_mode:  AUDIT
+    registered_at:    "2026-03-08T00:00:00Z"
+    contact:          week7-team@sentinel-contracts.internal
+
+  # ── Week 4 → Week 7 ──────────────────────────────────────────────
+  # The Data Contract Enforcer uses the lineage graph
+  # as the foundation for violation attribution and
+  # blast radius computation.
+  # Without a valid lineage graph the attributor cannot
+  # traverse upstream to find the blame chain.
+
+  - contract_id:      week4-brownfield-cartographer
+    subscriber_id:    week7-enforcer
+    subscriber_team:  week7
+    fields_consumed:
+      - nodes
+      - edges
+      - git_commit
+      - snapshot_id
+    breaking_fields:
+      - field:  edges
+        reason: >
+          The ViolationAttributor traverses edges upstream
+          to find producer files. A structural change to
+          edge format breaks graph traversal entirely.
+      - field:  nodes
+        reason: >
+          Nodes are the vertices the attributor navigates.
+          A node_id format change breaks all lookups.
+      - field:  git_commit
+        reason: >
+          Used to correlate lineage snapshots with git history.
+          A format change breaks temporal ordering of blame chain.
+    validation_mode:  ENFORCE
+    registered_at:    "2026-03-08T00:00:00Z"
+    contact:          week7-team@sentinel-contracts.internal
+
+  # ── Week 5 → Week 7 ──────────────────────────────────────────────
+  # The Data Contract Enforcer validates event records
+  # for sequence integrity, payload schema conformance,
+  # and temporal ordering.
+
+  - contract_id:      week5-event-sourcing-platform
+    subscriber_id:    week7-enforcer
+    subscriber_team:  week7
+    fields_consumed:
+      - event_id
+      - event_type
+      - aggregate_id
+      - sequence_number
+      - payload
+      - metadata
+      - occurred_at
+      - recorded_at
+    breaking_fields:
+      - field:  sequence_number
+        reason: >
+          The sequence integrity check depends on monotonically
+          increasing sequence numbers per aggregate.
+          Any gap, duplicate or format change breaks this check.
+      - field:  event_type
+        reason: >
+          PascalCase enforcement and schema registry lookup
+          depend on this field. A casing change breaks both.
+      - field:  metadata.correlation_id
+        reason: >
+          Used for distributed tracing attribution.
+          Removal breaks cross-system trace correlation.
+    validation_mode:  ENFORCE
+    registered_at:    "2026-03-31T00:00:00Z"
+    contact:          week7-team@sentinel-contracts.internal
+
+  # ── LangSmith → Week 7 ───────────────────────────────────────────
+  # The AI Contract Extension validates LangSmith trace
+  # records for token arithmetic, cost non-negativity,
+  # run type enum conformance, and temporal ordering.
+
+  - contract_id:      langsmith-trace-records
+    subscriber_id:    week7-enforcer
+    subscriber_team:  week7
+    fields_consumed:
+      - id
+      - run_type
+      - total_tokens
+      - prompt_tokens
+      - completion_tokens
+      - total_cost
+      - start_time
+      - end_time
+    breaking_fields:
+      - field:  total_tokens
+        reason: >
+          Must equal prompt_tokens + completion_tokens.
+          A format change or removal breaks the arithmetic
+          validation check.
+      - field:  run_type
+        reason: >
+          Must be one of five registered enum values.
+          Adding new values without registering them first
+          triggers schema violations in the AI extension.
+      - field:  total_cost
+        reason: >
+          Must be non-negative float in USD.
+          A unit change (e.g. to cents) silently corrupts
+          cost monitoring and budget alerting.
+    validation_mode:  AUDIT
+    registered_at:    "2026-03-08T00:00:00Z"
+    contact:          week7-team@sentinel-contracts.internal
+
+  # ── Week 2 → Week 7 ──────────────────────────────────────────────
+  # The AI Contract Extension validates verdict records
+  # for LLM output schema conformance and tracks the
+  # violation rate as a prompt quality metric.
+
+  - contract_id:      week2-digital-courtroom
+    subscriber_id:    week7-enforcer
+    subscriber_team:  week7
+    fields_consumed:
+      - verdict_id
+      - overall_verdict
+      - overall_score
+      - confidence
+      - scores
+    breaking_fields:
+      - field:  overall_verdict
+        reason: >
+          Must be exactly one of PASS FAIL WARN.
+          Any new value or casing change breaks the
+          LLM output schema check and the enforcer report
+          verdict aggregation.
+      - field:  confidence
+        reason: >
+          Must be float 0.0-1.0. A scale change corrupts
+          the confidence distribution baseline used for
+          drift detection.
+    validation_mode:  AUDIT
+    registered_at:    "2026-03-31T00:00:00Z"
+    contact:          week7-team@sentinel-contracts.internal
+
+  # ── Week 1 → Week 2 ──────────────────────────────────────────────
+  # The Digital Courtroom evaluates code referenced
+  # by intent records. The target_ref in a verdict
+  # should match a file in the intent system.
+
+  - contract_id:      week1-intent-code-correlator
+    subscriber_id:    week2-digital-courtroom
+    subscriber_team:  week2
+    fields_consumed:
+      - code_refs
+      - intent_id
+      - governance_tags
+    breaking_fields:
+      - field:  code_refs.file
+        reason: >
+          The courtroom uses file paths as target_ref values.
+          A rename or restructure of file paths breaks the
+          cross-system referential integrity check.
+      - field:  code_refs.confidence
+        reason: >
+          Used to weight evidence strength in the courtroom.
+          A scale change from 0.0-1.0 to 0-100 makes all
+          evidence appear maximally confident.
+    validation_mode:  WARN
+    registered_at:    "2026-03-08T00:00:00Z"
+    contact:          week2-team@sentinel-contracts.internal
