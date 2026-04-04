@@ -154,9 +154,33 @@ def classify_change(change):
     elif ct == "RANGE_CHANGED":
         old_val = str(change.get("old_value", ""))
         new_val = str(change.get("new_value", ""))
-        # detect confidence scale change specifically
+
+        # detect semantic narrowing: proportional scale change (e.g. 0–1 → 0–100)
+        # consumers reading values in the old range will silently misinterpret all data
+        try:
+            old_parts = [
+                float(x) for x in old_val.split("\u2013")
+                if x.strip() not in ("", "None")
+            ]
+            new_parts = [
+                float(x) for x in new_val.split("\u2013")
+                if x.strip() not in ("", "None")
+            ]
+            if len(old_parts) == 2 and len(new_parts) == 2:
+                old_span = old_parts[1] - old_parts[0]
+                new_span = new_parts[1] - new_parts[0]
+                if old_span > 0 and (new_span / old_span) >= 50:
+                    return "CRITICAL", (
+                        f"Semantic narrowing detected: scale changed {old_val} → {new_val}. "
+                        f"Consumers expecting the {old_val} range will silently misread every "
+                        f"value — all downstream thresholds and statistical baselines are invalid."
+                    )
+        except (ValueError, ZeroDivisionError):
+            pass
+
+        # confidence field is always a scale concern even without span ratio
         if "confidence" in change["field"].lower():
-            return "BREAKING", (
+            return "CRITICAL", (
                 f"Confidence range changed {old_val} → {new_val}. "
                 f"This is the canonical scale violation — "
                 f"downstream baselines are now invalid."
@@ -235,8 +259,10 @@ def generate_migration_report(
     old_snapshot_name,
     new_snapshot_name
 ):
-    breaking = [c for c in changes_with_class if c["compatibility"] == "BREAKING"]
+    breaking = [c for c in changes_with_class if c["compatibility"] in ("BREAKING", "CRITICAL")]
     safe     = [c for c in changes_with_class if c["compatibility"] == "SAFE"]
+    critical = [c for c in breaking if c["compatibility"] == "CRITICAL"]
+    critical_fields = {c["field"] for c in critical}
 
     # ── per-consumer failure mode analysis ──
     # load registry to get subscriber details
@@ -290,12 +316,21 @@ def generate_migration_report(
                         })
 
                 if affected_changes:
+                    # consumer is HIGH_RISK if any of its affected fields
+                    # experienced a CRITICAL (semantic narrowing) change
+                    hits_critical = any(
+                        ac["field"] in critical_fields
+                        for ac in affected_changes
+                    )
+                    risk_level = "HIGH_RISK" if hits_critical else "AT_RISK"
                     consumer_analysis.append({
                         "subscriber_id":   subscriber_id,
                         "validation_mode": validation_mode,
                         "contact":         sub.get("contact", ""),
+                        "risk_level":      risk_level,
                         "affected_changes": affected_changes,
                         "recommended_action": (
+                            f"{'⚠ HIGH_RISK — ' if hits_critical else ''}"
                             f"Notify {subscriber_id} immediately. "
                             f"Validation mode is {validation_mode} — "
                             + (
@@ -349,6 +384,10 @@ def generate_migration_report(
         f"Notify registry subscribers that rollback is complete."
     ) if breaking else "No rollback required — all changes are safe."
 
+    high_risk_consumers = [
+        c for c in consumer_analysis if c.get("risk_level") == "HIGH_RISK"
+    ]
+
     return {
         "report_id":    str(uuid.uuid4()),
         "contract_id":  contract_id,
@@ -358,12 +397,16 @@ def generate_migration_report(
             "new": new_snapshot_name
         },
         "summary": {
-            "total_changes":    len(changes_with_class),
-            "breaking_changes": len(breaking),
-            "safe_changes":     len(safe),
-            "consumers_affected": len(consumer_analysis)
+            "total_changes":      len(changes_with_class),
+            "critical_changes":   len(critical),
+            "breaking_changes":   len(breaking),
+            "safe_changes":       len(safe),
+            "consumers_affected": len(consumer_analysis),
+            "high_risk_consumers": len(high_risk_consumers)
         },
+        "critical_changes":     critical,
         "changes_detected":     changes_with_class,
+        "high_risk_consumers":  high_risk_consumers,
         "consumer_analysis":    consumer_analysis,
         "blast_radius":         blast_radius,
         "migration_checklist":  checklist,
@@ -435,8 +478,13 @@ def main():
 
     breaking_count = sum(
         1 for c in changes_with_class
-        if c["compatibility"] == "BREAKING"
+        if c["compatibility"] in ("BREAKING", "CRITICAL")
     )
+    critical_count = sum(
+        1 for c in changes_with_class
+        if c["compatibility"] == "CRITICAL"
+    )
+    print(f"  Critical changes: {critical_count}")
     print(f"  Breaking changes: {breaking_count}")
     print(f"  Safe changes:     {len(changes) - breaking_count}")
 
@@ -467,6 +515,8 @@ def main():
         json.dump(report, f, indent=2)
 
     print(f"\n  Migration impact report: {output_path}")
+    if critical_count > 0:
+        print(f"  CRITICAL: {critical_count} semantic narrowing(s) — high-risk consumers: {len(report['high_risk_consumers'])}")
     if breaking_count > 0:
         print(f"  ACTION REQUIRED: {breaking_count} breaking change(s) detected")
         print(f"  Migration checklist has {len(report['migration_checklist'])} steps")
