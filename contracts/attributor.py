@@ -311,18 +311,9 @@ def build_blame_chain(upstream_files, G):
                 "confidence_score": score
             })
 
-    # if still no candidates add a synthetic one
-    # for the injected violation
+    # if still no candidates, origin is unknown — do not fabricate
     if not candidates:
-        candidates.append({
-            "file_path":        "migrations/inject_violations.py",
-            "commit_hash":      "0" * 40,
-            "author":           "developer@example.com",
-            "author_name":      "Developer",
-            "commit_timestamp": datetime.now(timezone.utc).isoformat(),
-            "commit_message":   "injected: confidence scaled to 0-100",
-            "confidence_score": 0.95
-        })
+        return []
 
     # sort by confidence score descending
     candidates.sort(
