@@ -293,35 +293,62 @@ def summarise_ai_risk(ai_metrics):
 
 def generate_actions(health_score, violation_counts,
                      top3_violations, schema_changes,
-                     ai_summary):
+                     ai_summary, violations=None):
     actions = []
 
-    # action 1 — most critical violation
-    if top3_violations:
-        actions.append({
-            "priority": 1,
-            "risk":     "CRITICAL" if violation_counts.get("CRITICAL", 0) > 0 else "HIGH",
-            "action":   top3_violations[0]
-        })
+    severity_weight = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "WARNING": 1}
 
-    # action 2 — breaking schema change
-    breaking = [c for c in schema_changes if c.get("verdict") == "BREAKING"]
-    if breaking:
-        change = breaking[0]
-        actions.append({
-            "priority": 2,
-            "risk":     "HIGH",
-            "action": (
-                f"Breaking schema change on field '{change['field']}'. "
-                f"{change['action']} "
-                f"Review migration checklist in validation_reports/."
-            )
-        })
+    # derive actions directly from violations, naming contract file + clause
+    if violations:
+        sorted_v = sorted(
+            violations,
+            key=lambda v: severity_weight.get(v.get("severity", "LOW"), 0),
+            reverse=True
+        )
+        for v in sorted_v[:3]:
+            check_id    = v.get("check_id", "")
+            parts       = check_id.split(".")
+            contract_id = parts[0] if parts else "unknown"
+            field       = ".".join(parts[1:-1]) if len(parts) > 2 else (
+                              parts[1] if len(parts) > 1 else "unknown"
+                          )
+            check_type  = parts[-1] if len(parts) > 1 else "unknown"
+            severity    = v.get("severity", "LOW")
+            contract_path = f"generated_contracts/{contract_id}.yaml"
 
-    # action 3 — AI risk
-    if "ALERT" in ai_summary or "WARNING" in ai_summary:
+            actions.append({
+                "priority": len(actions) + 1,
+                "risk":     severity,
+                "action": (
+                    f"Fix {contract_path} — field '{field}', "
+                    f"clause '{check_type}': "
+                    f"{v.get('message', 'constraint violated')}."
+                )
+            })
+
+    # fallback — breaking schema change if not enough violation-derived actions
+    if len(actions) < 3:
+        breaking = [
+            c for c in schema_changes
+            if c.get("verdict") in ("BREAKING", "CRITICAL")
+        ]
+        for change in breaking:
+            if len(actions) >= 3:
+                break
+            actions.append({
+                "priority": len(actions) + 1,
+                "risk":     "HIGH",
+                "action": (
+                    f"Breaking schema change on field '{change['field']}'. "
+                    f"{change['action']} "
+                    f"Review migration checklist in validation_reports/."
+                )
+            })
+
+    # fallback — AI risk
+    if len(actions) < 3 and ("ALERT" in ai_summary or "WARNING" in ai_summary):
         actions.append({
-            "priority": 3,
+            "priority": len(actions) + 1,
             "risk":     "MEDIUM",
             "action": (
                 "AI system risk detected. "
@@ -330,7 +357,7 @@ def generate_actions(health_score, violation_counts,
             )
         })
 
-    # pad to 3 actions
+    # pad to 3
     while len(actions) < 3:
         actions.append({
             "priority": len(actions) + 1,
@@ -642,7 +669,8 @@ def main():
     ai_risk                = summarise_ai_risk(ai_metrics)
     actions                = generate_actions(
         health_score, violation_counts,
-        top3, schema_changes, ai_risk
+        top3, schema_changes, ai_risk,
+        violations=violations
     )
 
     print(f"\n  Health score:       {health_score} / 100")
