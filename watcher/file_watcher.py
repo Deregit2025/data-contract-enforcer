@@ -2,7 +2,7 @@ import time
 import logging
 from pathlib import Path
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileCreatedEvent, FileModifiedEvent
+from watchdog.events import FileSystemEventHandler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,27 +13,33 @@ log = logging.getLogger(__name__)
 
 ROOT        = Path(__file__).resolve().parents[1]
 WATCH_DIR   = ROOT / "outputs"
+FLAG_FILE   = ROOT / ".dagster_storage" / "force_run.flag"
 
 
 class EnforcerEventHandler(FileSystemEventHandler):
     """
     Watches outputs/ for .jsonl file creation or modification.
-    Logs the event — the Dagster sensor picks up the change
-    on its next 30-second poll and submits a pipeline run.
+    Writes a force_run.flag that the Dagster sensor picks up immediately
+    on its next poll (within 30 seconds), triggering the full pipeline.
     """
 
     def _is_relevant(self, path: str) -> bool:
         return path.endswith(".jsonl")
 
+    def _write_flag(self, reason: str):
+        FLAG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        FLAG_FILE.write_text(reason)
+        log.info(f"Trigger flag written — Dagster will pick this up within 30s.")
+
     def on_created(self, event):
         if not event.is_directory and self._is_relevant(event.src_path):
             log.info(f"NEW FILE detected: {event.src_path}")
-            log.info("Dagster sensor will pick this up within 30 seconds.")
+            self._write_flag(f"created:{event.src_path}")
 
     def on_modified(self, event):
         if not event.is_directory and self._is_relevant(event.src_path):
             log.info(f"FILE MODIFIED: {event.src_path}")
-            log.info("Dagster sensor will pick this up within 30 seconds.")
+            self._write_flag(f"modified:{event.src_path}")
 
     def on_deleted(self, event):
         if not event.is_directory and self._is_relevant(event.src_path):
