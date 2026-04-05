@@ -1,0 +1,65 @@
+captured_at: '2026-04-05T11:56:43.918668+00:00'
+fields:
+  confidence:
+    business_rule: value must be a decimal number between 0 and 1 inclusive
+    description: Numerical confidence score representing the certainty or reliability
+      of the verdict, expressed as a probability or percentage in decimal form
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  evaluated_at:
+    description: Column evaluated_at
+    format: date-time
+    required: true
+    type: string
+  is_synthetic:
+    business_rule: value must be boolean (True/False)
+    description: Indicates whether the verdict was generated synthetically (artificially
+      created) rather than from real evaluation data
+    required: false
+    type: string
+  overall_score:
+    business_rule: value must be a decimal number between 0 and 5.0, typically rounded
+      to one decimal place
+    description: Numeric score representing the overall evaluation result, typically
+      on a scale from 0 to some maximum value (likely 3.0 or 5.0 based on sample values)
+    maximum: 3.6
+    minimum: 2.2
+    required: true
+    type: number
+  overall_verdict:
+    business_rule: 'value must be one of: ''PASS'', ''WARN'', ''FAIL'' (case-sensitive
+      uppercase strings)'
+    description: The final categorical assessment result of an evaluation, indicating
+      whether the rubric criteria were met, partially met, or not met
+    required: true
+    type: string
+  rubric_id:
+    description: Column rubric_id
+    pattern: ^[a-f0-9]{64}$
+    required: true
+    type: string
+  rubric_version:
+    business_rule: value must follow semantic versioning pattern (MAJOR.MINOR.PATCH)
+      where each segment is a non-negative integer
+    description: Version number of the rubric used to generate the verdict, following
+      semantic versioning format
+    required: true
+    type: string
+  target_ref:
+    business_rule: Must be a valid file path string, typically using forward slashes
+      as separators; cannot be empty or null
+    description: File path or repository reference that the verdict applies to, representing
+      the target artifact being evaluated
+    required: true
+    type: string
+  verdict_id:
+    business_rule: Must be a valid UUID (RFC 4122 format), non-null, and unique across
+      all records in the Verdicts table
+    description: Unique identifier for each verdict record, used as the primary key
+      to distinguish individual verdict entries in the Verdicts table
+    format: uuid
+    required: true
+    type: string
+snapshot_id: verdicts

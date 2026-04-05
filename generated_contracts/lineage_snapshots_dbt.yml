@@ -1,0 +1,42 @@
+models:
+- columns:
+  - name: snapshot_id
+    tests:
+    - not_null
+    - unique
+  - name: codebase_root
+    tests:
+    - not_null
+  - name: git_commit
+    tests:
+    - not_null
+  - name: nodes_count
+    tests:
+    - not_null
+  - name: edges_count
+    tests:
+    - not_null
+  - name: edges_confidence_mean
+    tests:
+    - not_null
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: edges_confidence_min
+    tests:
+    - not_null
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: edges_confidence_max
+    tests:
+    - not_null
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: captured_at
+    tests:
+    - not_null
+  description: Lineage Snapshots
+  name: lineage_snapshots
+version: 2

@@ -1,0 +1,88 @@
+{
+  "report_id": "0b327c09-bc54-409a-a9b2-c988322be96a",
+  "contract_id": "week4-brownfield-cartographer",
+  "snapshot_id": "6ec00a364a71a70a9fe0ef8225020ff7a31a05bf8bcc51b5c4a7048685c7247b",
+  "run_timestamp": "2026-04-05T12:07:14.711674+00:00",
+  "enforcement_mode": "ENFORCE",
+  "pipeline_blocked": false,
+  "block_reason": "",
+  "total_checks": 6,
+  "passed": 6,
+  "failed": 0,
+  "warned": 0,
+  "errored": 0,
+  "results": [
+    {
+      "check_id": "week4-brownfield-cartographer.row_count",
+      "column_name": "row_count",
+      "check_type": "row_count",
+      "status": "PASS",
+      "actual_value": "7 rows",
+      "expected": ">=1 rows",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "Dataset has 7 rows, minimum is 1"
+    },
+    {
+      "check_id": "week4-brownfield-cartographer.captured_at.not_null",
+      "column_name": "captured_at",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field captured_at"
+    },
+    {
+      "check_id": "week4-brownfield-cartographer.codebase_root.not_null",
+      "column_name": "codebase_root",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field codebase_root"
+    },
+    {
+      "check_id": "week4-brownfield-cartographer.git_commit.not_null",
+      "column_name": "git_commit",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field git_commit"
+    },
+    {
+      "check_id": "week4-brownfield-cartographer.snapshot_id.not_null",
+      "column_name": "snapshot_id",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field snapshot_id"
+    },
+    {
+      "check_id": "week4-brownfield-cartographer.snapshot_id.unique",
+      "column_name": "snapshot_id",
+      "check_type": "unique",
+      "status": "PASS",
+      "actual_value": "7 unique of 7",
+      "expected": "all unique",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 duplicate values found in snapshot_id"
+    }
+  ]
+}

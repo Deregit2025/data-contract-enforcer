@@ -4,10 +4,6 @@ fields:
     description: Column doc_id
     required: true
     type: string
-  doc_name:
-    description: Original document name before uuid conversion
-    required: false
-    type: string
   entities_count:
     business_rule: value must be a non-negative integer; value should be 0 or greater;
       typically correlates with document length and complexity
@@ -94,16 +90,6 @@ fields:
     description: The name and version identifier of the AI model used to extract information
       from documents, specifying which GPT model performed the extraction
     required: true
-    type: string
-  is_synthetic:
-    description: Flag indicating record was synthetically generated
-    required: false
-    type: boolean
-  processing_time_ms:
-    description: Time in milliseconds to process the document
-    maximum: 300000.0
-    minimum: 1000.0
-    required: true
     type: integer
   source_hash:
     description: Column source_hash
@@ -118,8 +104,8 @@ fields:
     business_rule: value must be positive integer greater than 0
     description: Number of tokens in the input document sent to the extraction model
       for processing
-    maximum: 8000.0
-    minimum: 3000.0
+    maximum: 1000.0
+    minimum: 0.0
     required: true
     type: integer
   token_count_output:

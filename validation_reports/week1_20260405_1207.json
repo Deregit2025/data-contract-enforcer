@@ -1,0 +1,76 @@
+{
+  "report_id": "aac6f46c-7616-48cc-a849-3e6403a0c816",
+  "contract_id": "week1-intent-code-correlator",
+  "snapshot_id": "74a46d53b976db86f6ccfff4a7451f779f8a610b750b690d7000f1a50b3e4b8e",
+  "run_timestamp": "2026-04-05T12:07:12.902975+00:00",
+  "enforcement_mode": "ENFORCE",
+  "pipeline_blocked": false,
+  "block_reason": "",
+  "total_checks": 5,
+  "passed": 5,
+  "failed": 0,
+  "warned": 0,
+  "errored": 0,
+  "results": [
+    {
+      "check_id": "week1-intent-code-correlator.row_count",
+      "column_name": "row_count",
+      "check_type": "row_count",
+      "status": "PASS",
+      "actual_value": "20 rows",
+      "expected": ">=1 rows",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "Dataset has 20 rows, minimum is 1"
+    },
+    {
+      "check_id": "week1-intent-code-correlator.created_at.not_null",
+      "column_name": "created_at",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field created_at"
+    },
+    {
+      "check_id": "week1-intent-code-correlator.description.not_null",
+      "column_name": "description",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field description"
+    },
+    {
+      "check_id": "week1-intent-code-correlator.intent_id.not_null",
+      "column_name": "intent_id",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field intent_id"
+    },
+    {
+      "check_id": "week1-intent-code-correlator.status.not_null",
+      "column_name": "status",
+      "check_type": "not_null",
+      "status": "PASS",
+      "actual_value": "0 nulls",
+      "expected": "0 nulls",
+      "severity": null,
+      "records_failing": 0,
+      "sample_failing": [],
+      "message": "0 null values found in required field status"
+    }
+  ]
+}

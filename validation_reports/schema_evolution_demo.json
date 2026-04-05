@@ -1,0 +1,96 @@
+{
+  "report_id": "c8ca340c-314c-4b58-b5b8-a1b352e719a6",
+  "contract_id": "week3-document-refinery-extractions",
+  "generated_at": "2026-04-04T21:00:29.011250+00:00",
+  "compared_snapshots": {
+    "old": "2026-04-01T02-49-31.yaml",
+    "new": "2026-04-01T16-40-38.yaml"
+  },
+  "summary": {
+    "total_changes": 5,
+    "critical_changes": 0,
+    "breaking_changes": 2,
+    "safe_changes": 3,
+    "consumers_affected": 1,
+    "high_risk_consumers": 0
+  },
+  "critical_changes": [],
+  "changes_detected": [
+    {
+      "field": "doc_name",
+      "change_type": "FIELD_ADDED",
+      "old_value": null,
+      "new_value": "{'business_rule': 'Must be a non-empty string; typically follows pattern of descriptive title with optional year suffix in format YYYY or YYYY-YY', 'description': 'Name or title of the document from which data was extracted, typically representing reports, audits, surveys or official publications with year identifiers', 'required': True, 'type': 'string'}",
+      "compatibility": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it"
+    },
+    {
+      "field": "extraction_model",
+      "change_type": "TYPE_CHANGED",
+      "old_value": "integer",
+      "new_value": "string",
+      "compatibility": "BREAKING",
+      "reason": "Type changed integer \u2192 string \u2014 consumers will misread values"
+    },
+    {
+      "field": "is_synthetic",
+      "change_type": "FIELD_ADDED",
+      "old_value": null,
+      "new_value": "{'business_rule': 'value must be boolean (True/False)', 'description': 'Boolean flag indicating whether the extracted document or record was synthetically generated rather than being a real/original document', 'required': False, 'type': 'string'}",
+      "compatibility": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it"
+    },
+    {
+      "field": "processing_time_ms",
+      "change_type": "FIELD_ADDED",
+      "old_value": null,
+      "new_value": "{'description': 'Column processing_time_ms', 'maximum': 59916.0, 'minimum': 8614.0, 'required': True, 'type': 'integer'}",
+      "compatibility": "SAFE",
+      "reason": "New optional field \u2014 consumers can ignore it"
+    },
+    {
+      "field": "token_count_input",
+      "change_type": "RANGE_CHANGED",
+      "old_value": "0.0\u20131000.0",
+      "new_value": "3099.0\u20137982.0",
+      "compatibility": "BREAKING",
+      "reason": "Range changed 0.0\u20131000.0 \u2192 3099.0\u20137982.0 \u2014 statistical baselines invalid"
+    }
+  ],
+  "high_risk_consumers": [],
+  "consumer_analysis": [
+    {
+      "subscriber_id": "week4-cartographer",
+      "validation_mode": "ENFORCE",
+      "contact": "week4-team@sentinel-contracts.internal",
+      "risk_level": "AT_RISK",
+      "affected_changes": [
+        {
+          "field": "extraction_model",
+          "change_type": "TYPE_CHANGED",
+          "failure_mode": "Used to tag lineage nodes with the model that produced them. A pattern change breaks model attribution in the cartographer.\n",
+          "severity": "CRITICAL"
+        }
+      ],
+      "recommended_action": "Notify week4-cartographer immediately. Validation mode is ENFORCE \u2014 pipeline will be BLOCKED on next run."
+    }
+  ],
+  "blast_radius": [
+    "file::src/graph/knowledge_graph.py",
+    "file::src/utils/file_utils.py",
+    "file::src/models/lineage.py",
+    "file::src/models/edges.py",
+    "file::src/config.py"
+  ],
+  "migration_checklist": [
+    "1. Notify all registry subscribers of breaking change in 'extraction_model' \u2014 see consumer_analysis section",
+    "2. Revert 'extraction_model' from string back to integer in producer",
+    "3. Re-run ValidationRunner with --mode AUDIT on all consumer datasets to confirm fix",
+    "4. Re-establish statistical baseline for 'extraction_model' by deleting entry from schema_snapshots/baselines.json and re-running generator",
+    "5. Notify all registry subscribers of breaking change in 'token_count_input' \u2014 see consumer_analysis section",
+    "6. Revert 'token_count_input' from 3099.0\u20137982.0 back to 0.0\u20131000.0 in producer",
+    "7. Re-run ValidationRunner with --mode AUDIT on all consumer datasets to confirm fix",
+    "8. Re-establish statistical baseline for 'token_count_input' by deleting entry from schema_snapshots/baselines.json and re-running generator"
+  ],
+  "rollback_plan": "Revert producer to state before snapshot 2026-04-01T16-40-38.yaml. Re-run ContractGenerator to re-establish baselines. Re-run ValidationRunner on all consumer datasets. Notify registry subscribers that rollback is complete."
+}

@@ -1,0 +1,169 @@
+apiVersion: v3.0.0
+id: verdicts
+info:
+  description: Auto-generated contract for Verdicts. Generated at 2026-04-05T11:56:43.885517+00:00.
+  owner: verdicts
+  title: Verdicts
+  version: 1.0.0
+kind: DataContract
+lineage:
+  downstream: []
+  upstream: []
+llm_annotations:
+  confidence:
+    business_rule: value must be a decimal number between 0 and 1 inclusive
+    cross_column_relationship: associated with overall_verdict and overall_score;
+      confidence level quantifies the certainty of the verdict assessment
+    description: Numerical confidence score representing the certainty or reliability
+      of the verdict, expressed as a probability or percentage in decimal form
+  is_synthetic:
+    business_rule: value must be boolean (True/False)
+    cross_column_relationship: typically associated with lower confidence scores when
+      True; evaluated_at timestamp indicates when synthetic verdict was generated
+    description: Indicates whether the verdict was generated synthetically (artificially
+      created) rather than from real evaluation data
+  overall_score:
+    business_rule: value must be a decimal number between 0 and 5.0, typically rounded
+      to one decimal place
+    cross_column_relationship: should align with overall_verdict categorization; lower
+      scores likely correspond to negative verdicts, higher scores to positive verdicts;
+      must have corresponding rubric_version that defines scoring criteria
+    description: Numeric score representing the overall evaluation result, typically
+      on a scale from 0 to some maximum value (likely 3.0 or 5.0 based on sample values)
+  overall_verdict:
+    business_rule: 'value must be one of: ''PASS'', ''WARN'', ''FAIL'' (case-sensitive
+      uppercase strings)'
+    cross_column_relationship: typically derived from overall_score based on threshold
+      rules defined in rubric; confidence level may influence verdict assignment;
+      must have corresponding rubric_id and rubric_version
+    description: The final categorical assessment result of an evaluation, indicating
+      whether the rubric criteria were met, partially met, or not met
+  rubric_version:
+    business_rule: value must follow semantic versioning pattern (MAJOR.MINOR.PATCH)
+      where each segment is a non-negative integer
+    cross_column_relationship: must correspond to a valid version for the associated
+      rubric_id; rubric_id and rubric_version together identify the specific rubric
+      configuration used
+    description: Version number of the rubric used to generate the verdict, following
+      semantic versioning format
+  target_ref:
+    business_rule: Must be a valid file path string, typically using forward slashes
+      as separators; cannot be empty or null
+    cross_column_relationship: Must have corresponding verdict_id; links to a specific
+      rubric_id and rubric_version that defines evaluation criteria for this target
+    description: File path or repository reference that the verdict applies to, representing
+      the target artifact being evaluated
+  verdict_id:
+    business_rule: Must be a valid UUID (RFC 4122 format), non-null, and unique across
+      all records in the Verdicts table
+    cross_column_relationship: Primary key for the Verdicts table; likely referenced
+      as a foreign key by other tables to establish relationships with verdict records
+    description: Unique identifier for each verdict record, used as the primary key
+      to distinguish individual verdict entries in the Verdicts table
+quality:
+  specification:
+    checks for verdicts:
+    - row_count >= 1
+    - missing_count(verdict_id) = 0
+    - duplicate_count(verdict_id) = 0
+    - missing_count(target_ref) = 0
+    - missing_count(rubric_id) = 0
+    - missing_count(rubric_version) = 0
+    - missing_count(overall_verdict) = 0
+    - missing_count(overall_score) = 0
+    - missing_count(confidence) = 0
+    - missing_count(evaluated_at) = 0
+  type: SodaChecks
+schema:
+  confidence:
+    business_rule: value must be a decimal number between 0 and 1 inclusive
+    description: Numerical confidence score representing the certainty or reliability
+      of the verdict, expressed as a probability or percentage in decimal form
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  evaluated_at:
+    description: Column evaluated_at
+    format: date-time
+    required: true
+    type: string
+  is_synthetic:
+    business_rule: value must be boolean (True/False)
+    description: Indicates whether the verdict was generated synthetically (artificially
+      created) rather than from real evaluation data
+    required: false
+    type: string
+  overall_score:
+    business_rule: value must be a decimal number between 0 and 5.0, typically rounded
+      to one decimal place
+    description: Numeric score representing the overall evaluation result, typically
+      on a scale from 0 to some maximum value (likely 3.0 or 5.0 based on sample values)
+    maximum: 3.6
+    minimum: 2.2
+    required: true
+    type: number
+  overall_verdict:
+    business_rule: 'value must be one of: ''PASS'', ''WARN'', ''FAIL'' (case-sensitive
+      uppercase strings)'
+    description: The final categorical assessment result of an evaluation, indicating
+      whether the rubric criteria were met, partially met, or not met
+    required: true
+    type: string
+  rubric_id:
+    description: Column rubric_id
+    pattern: ^[a-f0-9]{64}$
+    required: true
+    type: string
+  rubric_version:
+    business_rule: value must follow semantic versioning pattern (MAJOR.MINOR.PATCH)
+      where each segment is a non-negative integer
+    description: Version number of the rubric used to generate the verdict, following
+      semantic versioning format
+    required: true
+    type: string
+  target_ref:
+    business_rule: Must be a valid file path string, typically using forward slashes
+      as separators; cannot be empty or null
+    description: File path or repository reference that the verdict applies to, representing
+      the target artifact being evaluated
+    required: true
+    type: string
+  verdict_id:
+    business_rule: Must be a valid UUID (RFC 4122 format), non-null, and unique across
+      all records in the Verdicts table
+    description: Unique identifier for each verdict record, used as the primary key
+      to distinguish individual verdict entries in the Verdicts table
+    format: uuid
+    required: true
+    type: string
+servers:
+  local:
+    format: jsonl
+    path: C:\Users\derej\Desktop\Intensive\contract-enforcer\outputs\week2\verdicts.jsonl
+    type: local
+statistics:
+  confidence:
+    flag: OK
+    max: 0.92
+    mean: 0.73
+    min: 0.6
+    p25: 0.67
+    p50: 0.69
+    p75: 0.7975
+    p95: 0.8725
+    p99: 0.9105
+    stddev: 0.0919
+  overall_score:
+    max: 3.6
+    mean: 2.9365
+    min: 2.2
+    p25: 2.7
+    p50: 2.9
+    p75: 3.225
+    p95: 3.505
+    p99: 3.581
+    stddev: 0.3754
+terms:
+  limitations: Do not modify field types without updating downstream consumers.
+  usage: Internal inter-system data contract.

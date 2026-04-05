@@ -109,6 +109,23 @@ def list_violations(
     return q.order_by(Violation.detected_at.desc()).all()
 
 
+@app.get("/api/failures")
+def list_all_failures(db: Session = Depends(get_db)):
+    """All distinct FAIL checks from validation_results, enriched with blame/blast from violations."""
+    rows = db.execute(text("""
+        SELECT DISTINCT ON (vr.check_id)
+            vr.check_id, vr.contract_id, vr.check_type,
+            vr.severity, vr.message, vr.column_name, vr.records_failing,
+            v.violation_id, v.blame_chain, v.blast_radius, v.detected_at
+        FROM validation_results vr
+        LEFT JOIN violations v
+            ON v.check_id = vr.check_id AND (v.injection_note IS NOT TRUE)
+        WHERE vr.status = 'FAIL'
+        ORDER BY vr.check_id, vr.severity DESC
+    """)).mappings().all()
+    return [dict(r) for r in rows]
+
+
 @app.get("/api/violations/summary")
 def violations_summary(db: Session = Depends(get_db)):
     rows = db.execute(text("""

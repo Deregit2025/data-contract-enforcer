@@ -42,20 +42,27 @@ export default function PlatformOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Gauge */}
         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 flex flex-col items-center">
-          <p className="text-slate-400 text-sm mb-2">Platform Health Score</p>
-          <div className="w-48 h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart
-                cx="50%" cy="50%" innerRadius="70%" outerRadius="100%"
-                data={gaugeData} startAngle={90} endAngle={-270}
-              >
-                <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                <RadialBar dataKey="value" background={{ fill: '#1e293b' }} cornerRadius={10} />
-              </RadialBarChart>
-            </ResponsiveContainer>
+          <p className="text-slate-400 text-sm mb-4">Platform Health Score</p>
+          <div className="relative w-48 h-48 flex items-center justify-center">
+            <div className="absolute inset-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart
+                  cx="50%" cy="50%" innerRadius="65%" outerRadius="100%"
+                  data={gaugeData} startAngle={90} endAngle={-270}
+                >
+                  <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                  <RadialBar dataKey="value" background={{ fill: '#1e293b' }} cornerRadius={10} />
+                </RadialBarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="relative text-center">
+              <p className="text-5xl font-black leading-none" style={{ color: scoreColor }}>{score}</p>
+              <p className="text-slate-400 text-xs mt-1">/ 100</p>
+            </div>
           </div>
-          <p className="text-5xl font-black mt-[-60px]" style={{ color: scoreColor }}>{score}</p>
-          <p className="text-slate-400 text-xs mt-1">out of 100</p>
+          <p className="text-slate-400 text-xs mt-3">
+            Raw pass rate {health.raw_pass_rate}% minus violation penalties
+          </p>
         </div>
 
         {/* Violation breakdown */}

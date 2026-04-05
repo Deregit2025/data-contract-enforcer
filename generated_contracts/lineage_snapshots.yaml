@@ -1,0 +1,230 @@
+apiVersion: v3.0.0
+id: lineage-snapshots
+info:
+  description: Auto-generated contract for Lineage Snapshots. Generated at 2026-04-05T11:58:43.052565+00:00.
+  owner: lineage
+  title: Lineage Snapshots
+  version: 1.0.0
+kind: DataContract
+lineage:
+  downstream:
+  - breaking_if_changed: []
+    description: downstream consumer from lineage graph
+    fields_consumed: []
+    id: file::src/utils/logging_utils.py
+  upstream: []
+llm_annotations:
+  codebase_root:
+    business_rule: 'Must be a valid absolute file path string; should exist and be
+      accessible; typically follows OS-specific path conventions (Windows: drive letter
+      with backslashes, Unix: forward slashes from root)'
+    cross_column_relationship: Associated with snapshot_id (each snapshot references
+      a specific codebase location); related to git_commit (the codebase root should
+      contain the git repository for the specified commit); should have corresponding
+      nodes_count entries representing elements within this codebase
+    description: The root directory path of the codebase being tracked in the lineage
+      snapshot, representing the absolute file system location where the code repository
+      resides
+  edges_confidence_max:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive, and must
+      be greater than or equal to edges_confidence_mean and edges_confidence_min
+    cross_column_relationship: edges_confidence_max >= edges_confidence_mean >= edges_confidence_min
+    description: Maximum confidence score among all lineage edges in the snapshot,
+      representing the highest level of certainty in data lineage connections at the
+      time of capture
+  edges_confidence_mean:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive; must be
+      greater than or equal to edges_confidence_min and less than or equal to edges_confidence_max
+    cross_column_relationship: 'must satisfy: edges_confidence_min <= edges_confidence_mean
+      <= edges_confidence_max; should be null when edges_count is 0'
+    description: The average confidence score of all lineage edges in the snapshot,
+      representing the mean level of certainty or trust in the data lineage relationships
+  edges_confidence_min:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive; must be
+      less than or equal to edges_confidence_mean and edges_confidence_max
+    cross_column_relationship: must be <= edges_confidence_mean and <= edges_confidence_max;
+      should be null if edges_count is 0 or null
+    description: The minimum confidence score among all lineage edges in the snapshot,
+      representing the lowest confidence level of any data lineage relationship captured
+      at that point in time
+  edges_count:
+    business_rule: value must be a non-negative integer; should be 0 or greater
+    cross_column_relationship: should be less than or equal to nodes_count squared
+      (maximum possible edges in a directed graph); typically present when nodes_count
+      > 0
+    description: The total number of edges (relationships or dependencies) in the
+      lineage graph snapshot at a specific git commit
+  git_commit:
+    business_rule: must be a valid 40-character hexadecimal SHA-1 hash
+    cross_column_relationship: relates to codebase_root to identify the specific version
+      of code; multiple snapshots can share the same git_commit if taken at the same
+      codebase version
+    description: Git commit hash identifier associated with the lineage snapshot,
+      representing the version of the codebase at the time the snapshot was taken
+  nodes_count:
+    business_rule: value must be a positive integer greater than or equal to 0
+    cross_column_relationship: should be consistent with edges_count; typically nodes_count
+      should be <= edges_count + 1 for connected graphs, and a graph with edges_count
+      > 0 should have nodes_count >= 2
+    description: The total number of nodes (entities or components) present in the
+      lineage graph at the time of the snapshot
+  snapshot_id:
+    business_rule: value must be a valid UUID format (8-4-4-4-12 hexadecimal pattern);
+      must be unique; cannot be null
+    cross_column_relationship: serves as primary key for the Lineage Snapshots table;
+      links to codebase_root and git_commit to form a complete snapshot record
+    description: Unique identifier for each lineage snapshot record, represented as
+      a UUID (Universally Unique Identifier) that tracks a specific point-in-time
+      capture of codebase lineage information
+quality:
+  specification:
+    checks for lineage-snapshots:
+    - row_count >= 1
+    - missing_count(snapshot_id) = 0
+    - duplicate_count(snapshot_id) = 0
+    - missing_count(codebase_root) = 0
+    - missing_count(git_commit) = 0
+    - missing_count(nodes_count) = 0
+    - missing_count(edges_count) = 0
+    - missing_count(edges_confidence_mean) = 0
+    - missing_count(edges_confidence_min) = 0
+    - missing_count(edges_confidence_max) = 0
+    - missing_count(captured_at) = 0
+  type: SodaChecks
+schema:
+  captured_at:
+    description: Column captured_at
+    format: date-time
+    required: true
+    type: string
+  codebase_root:
+    business_rule: 'Must be a valid absolute file path string; should exist and be
+      accessible; typically follows OS-specific path conventions (Windows: drive letter
+      with backslashes, Unix: forward slashes from root)'
+    description: The root directory path of the codebase being tracked in the lineage
+      snapshot, representing the absolute file system location where the code repository
+      resides
+    required: true
+    type: string
+  edges_confidence_max:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive, and must
+      be greater than or equal to edges_confidence_mean and edges_confidence_min
+    description: Maximum confidence score among all lineage edges in the snapshot,
+      representing the highest level of certainty in data lineage connections at the
+      time of capture
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  edges_confidence_mean:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive; must be
+      greater than or equal to edges_confidence_min and less than or equal to edges_confidence_max
+    description: The average confidence score of all lineage edges in the snapshot,
+      representing the mean level of certainty or trust in the data lineage relationships
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  edges_confidence_min:
+    business_rule: value must be a decimal between 0.0 and 1.0 inclusive; must be
+      less than or equal to edges_confidence_mean and edges_confidence_max
+    description: The minimum confidence score among all lineage edges in the snapshot,
+      representing the lowest confidence level of any data lineage relationship captured
+      at that point in time
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  edges_count:
+    business_rule: value must be a non-negative integer; should be 0 or greater
+    description: The total number of edges (relationships or dependencies) in the
+      lineage graph snapshot at a specific git commit
+    maximum: 87.0
+    minimum: 87.0
+    required: true
+    type: integer
+  git_commit:
+    business_rule: must be a valid 40-character hexadecimal SHA-1 hash
+    description: Git commit hash identifier associated with the lineage snapshot,
+      representing the version of the codebase at the time the snapshot was taken
+    required: true
+    type: string
+  nodes_count:
+    business_rule: value must be a positive integer greater than or equal to 0
+    description: The total number of nodes (entities or components) present in the
+      lineage graph at the time of the snapshot
+    maximum: 51.0
+    minimum: 51.0
+    required: true
+    type: integer
+  snapshot_id:
+    business_rule: value must be a valid UUID format (8-4-4-4-12 hexadecimal pattern);
+      must be unique; cannot be null
+    description: Unique identifier for each lineage snapshot record, represented as
+      a UUID (Universally Unique Identifier) that tracks a specific point-in-time
+      capture of codebase lineage information
+    format: uuid
+    required: true
+    type: string
+servers:
+  local:
+    format: jsonl
+    path: C:\Users\derej\Desktop\Intensive\contract-enforcer\outputs\week4\lineage_snapshots.jsonl
+    type: local
+statistics:
+  edges_confidence_max:
+    flag: POSSIBLE_CLAMPED — mean > 0.99
+    max: 1.0
+    mean: 1.0
+    min: 1.0
+    p25: 1.0
+    p50: 1.0
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.0
+  edges_confidence_mean:
+    flag: POSSIBLE_CLAMPED — mean > 0.99
+    max: 1.0
+    mean: 1.0
+    min: 1.0
+    p25: 1.0
+    p50: 1.0
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.0
+  edges_confidence_min:
+    flag: POSSIBLE_CLAMPED — mean > 0.99
+    max: 1.0
+    mean: 1.0
+    min: 1.0
+    p25: 1.0
+    p50: 1.0
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.0
+  edges_count:
+    max: 87.0
+    mean: 87.0
+    min: 87.0
+    p25: 87.0
+    p50: 87.0
+    p75: 87.0
+    p95: 87.0
+    p99: 87.0
+    stddev: 0.0
+  nodes_count:
+    max: 51.0
+    mean: 51.0
+    min: 51.0
+    p25: 51.0
+    p50: 51.0
+    p75: 51.0
+    p95: 51.0
+    p99: 51.0
+    stddev: 0.0
+terms:
+  limitations: Do not modify field types without updating downstream consumers.
+  usage: Internal inter-system data contract.

@@ -110,7 +110,7 @@ def compute_health_score(reports, violations):
         return 0.0, "No checks were run."
 
     # Severity deductions drawn from current report results (not historical log)
-    DEDUCTIONS = {"CRITICAL": 20, "HIGH": 10, "MEDIUM": 5, "LOW": 1}
+    DEDUCTIONS = {"CRITICAL": 1.5, "HIGH": 0.75, "MEDIUM": 0.25, "LOW": 0.05}
     current_fails = [
         result
         for rep in reports
@@ -120,7 +120,7 @@ def compute_health_score(reports, violations):
     critical_count = sum(1 for f in current_fails if f.get("severity") == "CRITICAL")
 
     raw_score = (total_passed / total_checks) * 100
-    deduction = sum(DEDUCTIONS.get(f.get("severity", "LOW"), 1) for f in current_fails)
+    deduction = min(50.0, sum(DEDUCTIONS.get(f.get("severity", "LOW"), 0.05) for f in current_fails))
     score     = round(max(0.0, min(100.0, raw_score - deduction)), 1)
 
     if score >= 90:

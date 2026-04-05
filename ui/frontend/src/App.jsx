@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './index.css'
+import ProjectOverview   from './components/ProjectOverview'
 import PlatformOverview  from './components/PlatformOverview'
 import HealthDashboard   from './components/HealthDashboard'
 import ValidationResults from './components/ValidationResults'
@@ -7,10 +8,11 @@ import ViolationDeepDive from './components/ViolationDeepDive'
 import SchemaEvolution   from './components/SchemaEvolution'
 import AiExtensions      from './components/AiExtensions'
 import InterfaceRisk     from './components/InterfaceRisk'
-import { Database, Activity, CheckSquare, AlertOctagon, GitMerge, Brain, Wifi } from 'lucide-react'
+import { Database, Activity, CheckSquare, AlertOctagon, GitMerge, Brain, Wifi, BookOpen } from 'lucide-react'
 
 const TABS = [
-  { id: 'overview',    label: 'Platform Overview',    icon: Activity },
+  { id: 'project',     label: 'Project Overview',     icon: BookOpen },
+  { id: 'overview',    label: 'Platform Health',      icon: Activity },
   { id: 'health',      label: 'Contract Health',      icon: Database },
   { id: 'validation',  label: 'Validation Results',   icon: CheckSquare },
   { id: 'violations',  label: 'Violation Deep-Dive',  icon: AlertOctagon },
@@ -20,9 +22,10 @@ const TABS = [
 ]
 
 export default function App() {
-  const [active, setActive] = useState('overview')
+  const [active, setActive] = useState('project')
 
   const ActiveComponent = {
+    project:    ProjectOverview,
     overview:   PlatformOverview,
     health:     HealthDashboard,
     validation: ValidationResults,

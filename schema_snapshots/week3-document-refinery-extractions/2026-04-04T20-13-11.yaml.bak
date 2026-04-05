@@ -1,0 +1,138 @@
+captured_at: '2026-04-04T20:13:11.300442+00:00'
+fields:
+  doc_id:
+    description: Column doc_id
+    required: true
+    type: string
+  doc_name:
+    business_rule: value must be non-empty string; should contain alphanumeric characters
+      and may include hyphens, underscores, or spaces; typically follows naming pattern
+      of report type followed by year
+    description: The name or title of the document from which data was extracted,
+      typically representing financial reports, audit documents, surveys, or official
+      government publications
+    required: true
+    type: string
+  entities_count:
+    business_rule: value must be a non-negative integer; typically greater than 0
+      if extraction was successful
+    description: The count of distinct entities extracted from the document during
+      the extraction process
+    maximum: 24.0
+    minimum: 2.0
+    required: true
+    type: integer
+  extracted_at:
+    description: Column extracted_at
+    format: date-time
+    required: true
+    type: string
+  extracted_facts_confidence_max:
+    business_rule: value must be a numeric between 0 and 100 inclusive; should be
+      greater than or equal to extracted_facts_confidence_mean and extracted_facts_confidence_min
+    description: The maximum confidence score among all extracted facts from a document,
+      representing the highest certainty level (0-100) that the extraction model has
+      in any single fact it identified
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  extracted_facts_confidence_mean:
+    business_rule: value must be a decimal between 0 and 100 inclusive; should be
+      greater than or equal to extracted_facts_confidence_min and less than or equal
+      to extracted_facts_confidence_max
+    description: The average confidence score across all facts extracted from a document,
+      representing the mean accuracy or certainty of the extraction process
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  extracted_facts_confidence_min:
+    business_rule: value must be between 0 and 100 inclusive; should be null only
+      when extracted_facts_count is 0 or null
+    description: Minimum confidence score across all facts extracted from a document,
+      representing the lowest confidence level among extracted facts
+    maximum: 1.0
+    minimum: 0.0
+    required: true
+    type: number
+  extracted_facts_count:
+    business_rule: value must be a non-negative integer; value must be 0 or greater
+    description: The total number of facts extracted from a source document during
+      the refinery extraction process
+    maximum: 13.0
+    minimum: 3.0
+    required: true
+    type: integer
+  extracted_facts_page_ref_max:
+    business_rule: value must be a positive integer; must be greater than or equal
+      to extracted_facts_page_ref_min and extracted_facts_page_ref_mean
+    description: Maximum page reference number found in the extracted facts from the
+      document, representing the highest page number where facts were identified
+    maximum: 50.0
+    minimum: 5.0
+    required: true
+    type: integer
+  extracted_facts_page_ref_mean:
+    business_rule: Must be a positive decimal number; should be >= extracted_facts_page_ref_min
+      and <= extracted_facts_page_ref_max when those columns have values
+    description: The mean (average) page reference number across all extracted facts
+      from a document, indicating the typical page location where facts were found
+    maximum: 39.8333
+    minimum: 4.1429
+    required: true
+    type: number
+  extracted_facts_page_ref_min:
+    business_rule: value must be a positive integer >= 1 representing a valid page
+      number
+    description: The minimum page reference number among all facts extracted from
+      a document, indicating the earliest page from which information was extracted
+    maximum: 35.0
+    minimum: 1.0
+    required: true
+    type: integer
+  extraction_model:
+    business_rule: value must be a non-empty string following the pattern of model_name-YYYY-MM-DD
+      format
+    description: The AI model version used to extract data from the document, identifying
+      the specific GPT-4 variant and release date
+    required: true
+    type: string
+  is_synthetic:
+    business_rule: value must be boolean (True or False); non-null
+    description: Boolean flag indicating whether the document or record was synthetically
+      generated rather than being a real/authentic source document
+    required: false
+    type: string
+  processing_time_ms:
+    description: Column processing_time_ms
+    maximum: 59916.0
+    minimum: 8614.0
+    required: true
+    type: integer
+  source_hash:
+    description: Column source_hash
+    pattern: ^[a-f0-9]{64}$
+    required: true
+    type: string
+  source_path:
+    description: Column source_path
+    required: true
+    type: string
+  token_count_input:
+    business_rule: value must be a positive integer greater than 0
+    description: Number of tokens in the input document sent to the extraction model
+      for processing
+    maximum: 7982.0
+    minimum: 3099.0
+    required: true
+    type: integer
+  token_count_output:
+    business_rule: value must be a positive integer greater than 0
+    description: Number of tokens generated in the output of the document extraction
+      process
+    maximum: 2147.0
+    minimum: 447.0
+    required: true
+    type: integer
+snapshot_id: week3-document-refinery-extractions

@@ -442,5 +442,393 @@
       "min": 5.0,
       "max": 24.0
     }
+  },
+  "intent-records": {
+    "code_refs_count": {
+      "mean": 2.6,
+      "stddev": 0.8208,
+      "min": 0.0,
+      "max": 4.0
+    },
+    "code_refs_line_start_mean": {
+      "mean": 2.6009,
+      "stddev": 1.1622,
+      "min": 1.0,
+      "max": 4.6667
+    },
+    "code_refs_line_start_min": {
+      "mean": 1.0,
+      "stddev": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "code_refs_line_start_max": {
+      "mean": 5.5263,
+      "stddev": 3.6571,
+      "min": 1.0,
+      "max": 12.0
+    },
+    "code_refs_line_end_mean": {
+      "mean": 47.5439,
+      "stddev": 12.0072,
+      "min": 30.0,
+      "max": 76.6667
+    },
+    "code_refs_line_end_min": {
+      "mean": 32.3158,
+      "stddev": 8.901,
+      "min": 20.0,
+      "max": 50.0
+    },
+    "code_refs_line_end_max": {
+      "mean": 64.9474,
+      "stddev": 19.1441,
+      "min": 40.0,
+      "max": 120.0
+    },
+    "code_refs_confidence_mean": {
+      "mean": 0.8507,
+      "stddev": 0.0364,
+      "min": 0.7967,
+      "max": 0.9167
+    },
+    "code_refs_confidence_min": {
+      "mean": 0.8079,
+      "stddev": 0.0363,
+      "min": 0.73,
+      "max": 0.87
+    },
+    "code_refs_confidence_max": {
+      "mean": 0.8942,
+      "stddev": 0.0423,
+      "min": 0.83,
+      "max": 0.98
+    },
+    "governance_tags_count": {
+      "mean": 1.55,
+      "stddev": 0.7592,
+      "min": 0.0,
+      "max": 3.0
+    }
+  },
+  "verdicts": {
+    "overall_score": {
+      "mean": 2.9365,
+      "stddev": 0.3754,
+      "min": 2.2,
+      "max": 3.6
+    },
+    "confidence": {
+      "mean": 0.73,
+      "stddev": 0.0919,
+      "min": 0.6,
+      "max": 0.92
+    }
+  },
+  "extractions": {
+    "extracted_facts_count": {
+      "mean": 5.6,
+      "stddev": 2.0101,
+      "min": 3.0,
+      "max": 13.0
+    },
+    "extracted_facts_confidence_mean": {
+      "mean": 85.2619,
+      "stddev": 5.1279,
+      "min": 75.6,
+      "max": 100.0
+    },
+    "extracted_facts_confidence_min": {
+      "mean": 76.96,
+      "stddev": 7.0866,
+      "min": 70.0,
+      "max": 100.0
+    },
+    "extracted_facts_confidence_max": {
+      "mean": 93.33,
+      "stddev": 4.6841,
+      "min": 79.0,
+      "max": 100.0
+    },
+    "extracted_facts_page_ref_mean": {
+      "mean": 22.6484,
+      "stddev": 8.9961,
+      "min": 4.1429,
+      "max": 39.8333
+    },
+    "extracted_facts_page_ref_min": {
+      "mean": 8.02,
+      "stddev": 7.3085,
+      "min": 1.0,
+      "max": 35.0
+    },
+    "extracted_facts_page_ref_max": {
+      "mean": 37.09,
+      "stddev": 13.6834,
+      "min": 5.0,
+      "max": 50.0
+    },
+    "entities_count": {
+      "mean": 4.37,
+      "stddev": 3.1161,
+      "min": 2.0,
+      "max": 24.0
+    },
+    "processing_time_ms": {
+      "mean": 33963.82,
+      "stddev": 15293.8477,
+      "min": 8614.0,
+      "max": 59916.0
+    },
+    "token_count_input": {
+      "mean": 5492.86,
+      "stddev": 1387.9012,
+      "min": 3099.0,
+      "max": 7982.0
+    },
+    "token_count_output": {
+      "mean": 1142.83,
+      "stddev": 449.6353,
+      "min": 447.0,
+      "max": 2147.0
+    }
+  },
+  "lineage-snapshots": {
+    "nodes_count": {
+      "mean": 51.0,
+      "stddev": 0.0,
+      "min": 51.0,
+      "max": 51.0
+    },
+    "edges_count": {
+      "mean": 87.0,
+      "stddev": 0.0,
+      "min": 87.0,
+      "max": 87.0
+    },
+    "edges_confidence_mean": {
+      "mean": 1.0,
+      "stddev": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "edges_confidence_min": {
+      "mean": 1.0,
+      "stddev": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "edges_confidence_max": {
+      "mean": 1.0,
+      "stddev": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    }
+  },
+  "events": {
+    "sequence_number": {
+      "mean": 5.3356,
+      "stddev": 3.2438,
+      "min": 1.0,
+      "max": 13.0
+    },
+    "payload_loan_term_months": {
+      "mean": 41.7931,
+      "stddev": 13.075,
+      "min": 24.0,
+      "max": 60.0
+    },
+    "payload_file_size_bytes": {
+      "mean": 212401.8804,
+      "stddev": 100717.8164,
+      "min": 48329.0,
+      "max": 379941.0
+    },
+    "payload_fiscal_year": {
+      "mean": 2024.0,
+      "stddev": 0.0,
+      "min": 2024.0,
+      "max": 2024.0
+    },
+    "payload_context_token_count": {
+      "mean": 1569.0339,
+      "stddev": 576.8933,
+      "min": 680.0,
+      "max": 3510.0
+    },
+    "payload_validation_duration_ms": {
+      "mean": 134.2373,
+      "stddev": 57.037,
+      "min": 41.0,
+      "max": 275.0
+    },
+    "payload_node_sequence": {
+      "mean": 3.2042,
+      "stddev": 1.7589,
+      "min": 1.0,
+      "max": 7.0
+    },
+    "payload_duration_ms": {
+      "mean": 1509.1246,
+      "stddev": 2890.5069,
+      "min": 87.0,
+      "max": 11948.0
+    },
+    "payload_page_count": {
+      "mean": 3.3333,
+      "stddev": 1.0954,
+      "min": 2.0,
+      "max": 5.0
+    },
+    "payload_tool_duration_ms": {
+      "mean": 3966.78,
+      "stddev": 2850.9454,
+      "min": 58.0,
+      "max": 7987.0
+    },
+    "payload_raw_text_length": {
+      "mean": 4054.3889,
+      "stddev": 1179.6065,
+      "min": 2048.0,
+      "max": 5849.0
+    },
+    "payload_tables_extracted": {
+      "mean": 3.8056,
+      "stddev": 1.0907,
+      "min": 2.0,
+      "max": 5.0
+    },
+    "payload_processing_ms": {
+      "mean": 5126.6944,
+      "stddev": 1643.8322,
+      "min": 2274.0,
+      "max": 7968.0
+    },
+    "payload_llm_tokens_input": {
+      "mean": 2034.56,
+      "stddev": 718.0306,
+      "min": 919.0,
+      "max": 3478.0
+    },
+    "payload_llm_tokens_output": {
+      "mean": 539.4,
+      "stddev": 219.7599,
+      "min": 204.0,
+      "max": 888.0
+    },
+    "payload_llm_cost_usd": {
+      "mean": 0.0142,
+      "stddev": 0.004,
+      "min": 0.0068,
+      "max": 0.0236
+    },
+    "payload_overall_confidence": {
+      "mean": 0.8818,
+      "stddev": 0.0474,
+      "min": 0.8088,
+      "max": 0.9577
+    },
+    "payload_documents_processed": {
+      "mean": 3.0,
+      "stddev": 0.0,
+      "min": 3.0,
+      "max": 3.0
+    },
+    "payload_quality_flag_count": {
+      "mean": 0.0,
+      "stddev": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "payload_total_nodes_executed": {
+      "mean": 5.0169,
+      "stddev": 1.5368,
+      "min": 3.0,
+      "max": 7.0
+    },
+    "payload_total_llm_calls": {
+      "mean": 0.8475,
+      "stddev": 0.3626,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "payload_total_tokens_used": {
+      "mean": 2378.6949,
+      "stddev": 1358.9092,
+      "min": 833.0,
+      "max": 6997.0
+    },
+    "payload_total_cost_usd": {
+      "mean": 0.0211,
+      "stddev": 0.0138,
+      "min": 0.0,
+      "max": 0.063
+    },
+    "payload_total_duration_ms": {
+      "mean": 24517.0508,
+      "stddev": 14587.7698,
+      "min": 2456.0,
+      "max": 54283.0
+    },
+    "payload_analysis_duration_ms": {
+      "mean": 28991.2857,
+      "stddev": 8342.148,
+      "min": 16179.0,
+      "max": 44154.0
+    },
+    "payload_fraud_score": {
+      "mean": 0.1364,
+      "stddev": 0.0545,
+      "min": 0.07,
+      "max": 0.2
+    },
+    "payload_anomalies_found": {
+      "mean": 0.0,
+      "stddev": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "payload_rules_evaluated": {
+      "mean": 5.2222,
+      "stddev": 1.5635,
+      "min": 2.0,
+      "max": 6.0
+    },
+    "payload_rules_passed": {
+      "mean": 4.1111,
+      "stddev": 1.5366,
+      "min": 1.0,
+      "max": 5.0
+    },
+    "payload_rules_failed": {
+      "mean": 0.3333,
+      "stddev": 0.5,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "payload_rules_noted": {
+      "mean": 0.7778,
+      "stddev": 0.441,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "payload_confidence": {
+      "mean": 0.7371,
+      "stddev": 0.1001,
+      "min": 0.54,
+      "max": 0.84
+    },
+    "payload_interest_rate_pct": {
+      "mean": 7.175,
+      "stddev": 1.0088,
+      "min": 6.08,
+      "max": 8.21
+    },
+    "payload_term_months": {
+      "mean": 39.0,
+      "stddev": 15.0997,
+      "min": 24.0,
+      "max": 60.0
+    }
   }
 }

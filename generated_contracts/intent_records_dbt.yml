@@ -1,0 +1,54 @@
+models:
+- columns:
+  - name: intent_id
+    tests:
+    - not_null
+  - name: description
+    tests:
+    - not_null
+  - name: code_refs_count
+    tests:
+    - not_null
+  - name: code_refs_line_start_mean
+    tests: []
+  - name: code_refs_line_start_min
+    tests: []
+  - name: code_refs_line_start_max
+    tests: []
+  - name: code_refs_line_end_mean
+    tests: []
+  - name: code_refs_line_end_min
+    tests: []
+  - name: code_refs_line_end_max
+    tests: []
+  - name: code_refs_confidence_mean
+    tests:
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: code_refs_confidence_min
+    tests:
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: code_refs_confidence_max
+    tests:
+    - dbt_utils.accepted_range:
+        max_value: 1.0
+        min_value: 0.0
+  - name: governance_tags_count
+    tests:
+    - not_null
+  - name: created_at
+    tests:
+    - not_null
+  - name: status
+    tests:
+    - not_null
+  - name: vcs_revision
+    tests: []
+  - name: is_synthetic
+    tests: []
+  description: Intent Records
+  name: intent_records
+version: 2

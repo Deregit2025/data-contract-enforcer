@@ -1,0 +1,407 @@
+apiVersion: v3.0.0
+id: intent-records
+info:
+  description: Auto-generated contract for Intent Records. Generated at 2026-04-05T11:56:10.385870+00:00.
+  owner: intent
+  title: Intent Records
+  version: 1.0.0
+kind: DataContract
+lineage:
+  downstream: []
+  upstream: []
+llm_annotations:
+  code_refs_confidence_max:
+    business_rule: value must be a decimal between 0 and 1 inclusive; must be greater
+      than or equal to code_refs_confidence_mean and code_refs_confidence_min
+    cross_column_relationship: must be >= code_refs_confidence_mean; must be >= code_refs_confidence_min;
+      null only if no code references exist for the intent
+    description: Maximum confidence score across all code references associated with
+      an intent record, representing the highest probability that a code reference
+      correctly maps to the intent
+  code_refs_confidence_mean:
+    business_rule: value must be a decimal between 0 and 1 inclusive; must be greater
+      than or equal to code_refs_confidence_min and less than or equal to code_refs_confidence_max
+    cross_column_relationship: 'must satisfy: code_refs_confidence_min <= code_refs_confidence_mean
+      <= code_refs_confidence_max; null if no code references exist'
+    description: Average confidence score across all code references associated with
+      an intent record, representing the mean certainty level of code reference mappings
+  code_refs_confidence_min:
+    business_rule: value must be a decimal between 0 and 1 inclusive, typically >=
+      0.5 for valid references
+    cross_column_relationship: must be <= code_refs_confidence_mean and <= code_refs_confidence_max;
+      null if no code references exist or when code_refs_count = 0
+    description: The minimum confidence score across all code references associated
+      with an intent record, representing the lowest probability that a detected code
+      reference is valid
+  code_refs_count:
+    business_rule: value must be a non-negative integer
+    cross_column_relationship: when code_refs_count is 0, code_refs_line_start_mean
+      and code_refs_line_start_min should be null; when code_refs_count > 0, these
+      statistical columns should have values
+    description: The total number of code references associated with this intent record
+  code_refs_line_end_max:
+    business_rule: value must be a positive integer greater than 0; should be greater
+      than or equal to code_refs_line_end_mean and code_refs_line_end_min
+    cross_column_relationship: must be >= code_refs_line_end_mean and >= code_refs_line_end_min;
+      typically represents the ending line of the longest code segment referenced
+    description: Maximum line number referenced in code across all code references
+      associated with this intent record
+  code_refs_line_end_mean:
+    business_rule: value must be a positive number; should be >= code_refs_line_end_min
+      and <= code_refs_line_end_max
+    cross_column_relationship: must be >= code_refs_line_start_mean; must fall between
+      code_refs_line_end_min and code_refs_line_end_max; should be >= corresponding
+      code_refs_line_start values
+    description: The average (mean) ending line number across all code references
+      associated with an intent record
+  code_refs_line_end_min:
+    business_rule: value must be a positive number; must be greater than or equal
+      to the corresponding line start value; typically an integer representing a line
+      number
+    cross_column_relationship: must be >= code_refs_line_start_max (or corresponding
+      line_start_min); should be <= code_refs_line_end_max and code_refs_line_end_mean;
+      represents the lower bound of the line end range
+    description: The minimum ending line number among all code references associated
+      with an intent record, representing the earliest end point of code spans referenced
+  code_refs_line_start_max:
+    business_rule: value must be a positive number; must be greater than or equal
+      to code_refs_line_start_mean and code_refs_line_start_min when those values
+      are present
+    cross_column_relationship: must be >= code_refs_line_start_mean; must be >= code_refs_line_start_min;
+      should be <= code_refs_line_end_max if that column exists
+    description: The maximum line number where a code reference starts within the
+      intent record, representing the highest starting line position across all code
+      references associated with this intent
+  code_refs_line_start_mean:
+    business_rule: value must be a positive number; must be >= code_refs_line_start_min
+      and <= code_refs_line_start_max when code_refs_count > 0
+    cross_column_relationship: only populated when code_refs_count > 0; must fall
+      between code_refs_line_start_min and code_refs_line_start_max (inclusive); calculated
+      as the arithmetic mean of all code reference starting line numbers
+    description: The average (mean) starting line number across all code references
+      associated with this intent record
+  code_refs_line_start_min:
+    business_rule: value must be a positive number (>= 1.0) when code references exist;
+      should be less than or equal to code_refs_line_start_mean and code_refs_line_start_max
+    cross_column_relationship: 'must be null when code_refs_count is 0 or null; when
+      not null, must satisfy: code_refs_line_start_min <= code_refs_line_start_mean
+      <= code_refs_line_start_max'
+    description: The minimum starting line number among all code references associated
+      with an intent record
+  description:
+    business_rule: Must be a non-empty string with length between 1 and 500 characters
+    cross_column_relationship: References code segments indicated by code_refs_count;
+      when code_refs_count > 0, code_refs_line_start_mean should also have a valid
+      numeric value
+    description: A human-readable text description of the development intent or task
+      being tracked, such as feature implementation, API creation, or code refactoring
+      work
+  governance_tags_count:
+    business_rule: value must be a non-negative integer (>= 0)
+    cross_column_relationship: likely relates to a separate governance_tags table
+      or array; count may correlate with status (e.g., approved records may require
+      governance_tags_count > 0)
+    description: The count of governance tags associated with an intent record, indicating
+      how many governance classifications or labels have been applied for compliance,
+      security, or policy management purposes
+  intent_id:
+    business_rule: Must be unique and non-null; accepts either formatted string pattern
+      (INT-XXX) or UUID format (8-4-4-4-12 hexadecimal)
+    cross_column_relationship: Primary key that may be referenced by code_refs_count
+      to track number of code references; links to description field for intent details
+    description: Unique identifier for each intent record, serving as the primary
+      key to distinguish individual intents in the system
+  is_synthetic:
+    business_rule: value must be boolean (True or False)
+    cross_column_relationship: may correlate with status field to filter out synthetic
+      records from production analytics; vcs_revision may indicate data generation
+      version for synthetic records
+    description: Flag indicating whether the intent record was synthetically generated
+      (artificial/test data) rather than originating from real user interactions
+  status:
+    business_rule: 'value must be one of: ''IN_PROGRESS'', ''COMPLETED'''
+    cross_column_relationship: When status is 'COMPLETED', created_at must be populated
+      and vcs_revision should be set
+    description: Current processing state of the intent record, indicating whether
+      the record is still being processed or has finished
+  vcs_revision:
+    business_rule: value must be a valid 40-character hexadecimal SHA-1 hash string
+      or null
+    cross_column_relationship: should be populated when is_synthetic is false; may
+      be null for synthetic test data records
+    description: Version control system commit hash or revision identifier that tracks
+      the code version associated with this intent record
+quality:
+  specification:
+    checks for intent-records:
+    - row_count >= 1
+    - missing_count(intent_id) = 0
+    - missing_count(description) = 0
+    - missing_count(code_refs_count) = 0
+    - missing_count(governance_tags_count) = 0
+    - missing_count(created_at) = 0
+    - missing_count(status) = 0
+  type: SodaChecks
+schema:
+  code_refs_confidence_max:
+    business_rule: value must be a decimal between 0 and 1 inclusive; must be greater
+      than or equal to code_refs_confidence_mean and code_refs_confidence_min
+    description: Maximum confidence score across all code references associated with
+      an intent record, representing the highest probability that a code reference
+      correctly maps to the intent
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  code_refs_confidence_mean:
+    business_rule: value must be a decimal between 0 and 1 inclusive; must be greater
+      than or equal to code_refs_confidence_min and less than or equal to code_refs_confidence_max
+    description: Average confidence score across all code references associated with
+      an intent record, representing the mean certainty level of code reference mappings
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  code_refs_confidence_min:
+    business_rule: value must be a decimal between 0 and 1 inclusive, typically >=
+      0.5 for valid references
+    description: The minimum confidence score across all code references associated
+      with an intent record, representing the lowest probability that a detected code
+      reference is valid
+    maximum: 1.0
+    minimum: 0.0
+    required: false
+    type: number
+  code_refs_count:
+    business_rule: value must be a non-negative integer
+    description: The total number of code references associated with this intent record
+    maximum: 4.0
+    minimum: 0.0
+    required: true
+    type: integer
+  code_refs_line_end_max:
+    business_rule: value must be a positive integer greater than 0; should be greater
+      than or equal to code_refs_line_end_mean and code_refs_line_end_min
+    description: Maximum line number referenced in code across all code references
+      associated with this intent record
+    maximum: 120.0
+    minimum: 40.0
+    required: false
+    type: number
+  code_refs_line_end_mean:
+    business_rule: value must be a positive number; should be >= code_refs_line_end_min
+      and <= code_refs_line_end_max
+    description: The average (mean) ending line number across all code references
+      associated with an intent record
+    maximum: 76.6667
+    minimum: 30.0
+    required: false
+    type: number
+  code_refs_line_end_min:
+    business_rule: value must be a positive number; must be greater than or equal
+      to the corresponding line start value; typically an integer representing a line
+      number
+    description: The minimum ending line number among all code references associated
+      with an intent record, representing the earliest end point of code spans referenced
+    maximum: 50.0
+    minimum: 20.0
+    required: false
+    type: number
+  code_refs_line_start_max:
+    business_rule: value must be a positive number; must be greater than or equal
+      to code_refs_line_start_mean and code_refs_line_start_min when those values
+      are present
+    description: The maximum line number where a code reference starts within the
+      intent record, representing the highest starting line position across all code
+      references associated with this intent
+    maximum: 12.0
+    minimum: 1.0
+    required: false
+    type: number
+  code_refs_line_start_mean:
+    business_rule: value must be a positive number; must be >= code_refs_line_start_min
+      and <= code_refs_line_start_max when code_refs_count > 0
+    description: The average (mean) starting line number across all code references
+      associated with this intent record
+    maximum: 4.6667
+    minimum: 1.0
+    required: false
+    type: number
+  code_refs_line_start_min:
+    business_rule: value must be a positive number (>= 1.0) when code references exist;
+      should be less than or equal to code_refs_line_start_mean and code_refs_line_start_max
+    description: The minimum starting line number among all code references associated
+      with an intent record
+    maximum: 1.0
+    minimum: 1.0
+    required: false
+    type: number
+  created_at:
+    description: Column created_at
+    format: date-time
+    required: true
+    type: string
+  description:
+    business_rule: Must be a non-empty string with length between 1 and 500 characters
+    description: A human-readable text description of the development intent or task
+      being tracked, such as feature implementation, API creation, or code refactoring
+      work
+    required: true
+    type: string
+  governance_tags_count:
+    business_rule: value must be a non-negative integer (>= 0)
+    description: The count of governance tags associated with an intent record, indicating
+      how many governance classifications or labels have been applied for compliance,
+      security, or policy management purposes
+    maximum: 3.0
+    minimum: 0.0
+    required: true
+    type: integer
+  intent_id:
+    business_rule: Must be unique and non-null; accepts either formatted string pattern
+      (INT-XXX) or UUID format (8-4-4-4-12 hexadecimal)
+    description: Unique identifier for each intent record, serving as the primary
+      key to distinguish individual intents in the system
+    required: true
+    type: string
+  is_synthetic:
+    business_rule: value must be boolean (True or False)
+    description: Flag indicating whether the intent record was synthetically generated
+      (artificial/test data) rather than originating from real user interactions
+    required: false
+    type: string
+  status:
+    business_rule: 'value must be one of: ''IN_PROGRESS'', ''COMPLETED'''
+    description: Current processing state of the intent record, indicating whether
+      the record is still being processed or has finished
+    required: true
+    type: string
+  vcs_revision:
+    business_rule: value must be a valid 40-character hexadecimal SHA-1 hash string
+      or null
+    description: Version control system commit hash or revision identifier that tracks
+      the code version associated with this intent record
+    required: false
+    type: string
+servers:
+  local:
+    format: jsonl
+    path: C:\Users\derej\Desktop\Intensive\contract-enforcer\outputs\week1\intent_records.jsonl
+    type: local
+statistics:
+  code_refs_confidence_max:
+    flag: OK
+    max: 0.98
+    mean: 0.8942
+    min: 0.83
+    p25: 0.875
+    p50: 0.89
+    p75: 0.91
+    p95: 0.971
+    p99: 0.9782
+    stddev: 0.0423
+  code_refs_confidence_mean:
+    flag: OK
+    max: 0.9167
+    mean: 0.8507
+    min: 0.7967
+    p25: 0.8158
+    p50: 0.85
+    p75: 0.8725
+    p95: 0.9129
+    p99: 0.9159
+    stddev: 0.0364
+  code_refs_confidence_min:
+    flag: OK
+    max: 0.87
+    mean: 0.8079
+    min: 0.73
+    p25: 0.78
+    p50: 0.8
+    p75: 0.835
+    p95: 0.852
+    p99: 0.8664
+    stddev: 0.0363
+  code_refs_count:
+    max: 4.0
+    mean: 2.6
+    min: 0.0
+    p25: 2.0
+    p50: 3.0
+    p75: 3.0
+    p95: 3.05
+    p99: 3.81
+    stddev: 0.8208
+  code_refs_line_end_max:
+    max: 120.0
+    mean: 64.9474
+    min: 40.0
+    p25: 52.5
+    p50: 60.0
+    p75: 72.5
+    p95: 91.2
+    p99: 114.24
+    stddev: 19.1441
+  code_refs_line_end_mean:
+    max: 76.6667
+    mean: 47.5439
+    min: 30.0
+    p25: 40.0
+    p50: 45.0
+    p75: 55.0
+    p95: 64.6667
+    p99: 74.2667
+    stddev: 12.0072
+  code_refs_line_end_min:
+    max: 50.0
+    mean: 32.3158
+    min: 20.0
+    p25: 25.0
+    p50: 30.0
+    p75: 40.0
+    p95: 45.5
+    p99: 49.1
+    stddev: 8.901
+  code_refs_line_start_max:
+    max: 12.0
+    mean: 5.5263
+    min: 1.0
+    p25: 3.0
+    p50: 5.0
+    p75: 8.0
+    p95: 12.0
+    p99: 12.0
+    stddev: 3.6571
+  code_refs_line_start_mean:
+    max: 4.6667
+    mean: 2.6009
+    min: 1.0
+    p25: 1.6667
+    p50: 3.0
+    p75: 3.3333
+    p95: 4.0667
+    p99: 4.5467
+    stddev: 1.1622
+  code_refs_line_start_min:
+    max: 1.0
+    mean: 1.0
+    min: 1.0
+    p25: 1.0
+    p50: 1.0
+    p75: 1.0
+    p95: 1.0
+    p99: 1.0
+    stddev: 0.0
+  governance_tags_count:
+    max: 3.0
+    mean: 1.55
+    min: 0.0
+    p25: 1.0
+    p50: 1.5
+    p75: 2.0
+    p95: 3.0
+    p99: 3.0
+    stddev: 0.7592
+terms:
+  limitations: Do not modify field types without updating downstream consumers.
+  usage: Internal inter-system data contract.
