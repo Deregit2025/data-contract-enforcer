@@ -1,7 +1,7 @@
 apiVersion: v3.0.0
 id: extractions
 info:
-  description: Auto-generated contract for Extractions. Generated at 2026-04-05T11:58:04.915822+00:00.
+  description: Auto-generated contract for Extractions. Generated at 2026-04-05T13:42:16.802948+00:00.
   owner: extractions
   title: Extractions
   version: 1.0.0
@@ -11,106 +11,99 @@ lineage:
   upstream: []
 llm_annotations:
   doc_name:
-    business_rule: value must be a non-empty string; should typically contain alphanumeric
-      characters and may include hyphens, underscores, and spaces; commonly includes
-      year information in format YYYY or YYYY-YY
-    cross_column_relationship: relates to extracted_at as the timestamp when this
-      document was processed; may be associated with is_synthetic flag to indicate
-      if document name refers to real or generated test data
+    business_rule: value must be non-null string; should contain descriptive document
+      title; may include year identifier (YYYY or YYYY-YY format)
+    cross_column_relationship: references the source document that was processed at
+      'extracted_at' timestamp; may be linked to synthetic data generation when 'is_synthetic'
+      is true; document complexity may correlate with 'token_count_output'
     description: Name or title of the source document from which data was extracted,
-      typically containing report titles, audit documents, or survey reports with
-      year identifiers
+      typically containing report titles, audit documents, or survey names with associated
+      years
   entities_count:
-    business_rule: Must be a non-negative integer; typically greater than 0 when extraction
-      is successful
-    cross_column_relationship: Should correlate with the page range size (extracted_facts_page_ref_max
-      - extracted_facts_page_ref_min); larger page ranges typically yield higher entity
-      counts; may correlate with processing_time_ms
-    description: The total count of distinct entities extracted from a document or
-      page range during the extraction process
+    business_rule: value must be a non-negative integer
+    cross_column_relationship: should be populated when extraction_model is specified
+      and processing_time_ms is greater than 0
+    description: The total count of distinct entities extracted from the document
+      during the extraction process
   extracted_facts_confidence_max:
-    business_rule: value must be numeric between 0 and 100, typically >= extracted_facts_confidence_mean
-      and >= extracted_facts_confidence_min
-    cross_column_relationship: must be >= extracted_facts_confidence_mean and >= extracted_facts_confidence_min;
-      forms a statistical triplet (min, mean, max) for confidence scoring
-    description: The maximum confidence score among all extracted facts from a document,
-      representing the highest certainty level for any single fact extraction, measured
-      as a percentage
+    business_rule: value must be a number between 0 and 100 inclusive; should be greater
+      than or equal to extracted_facts_confidence_mean and extracted_facts_confidence_min
+    cross_column_relationship: extracted_facts_confidence_max >= extracted_facts_confidence_mean
+      >= extracted_facts_confidence_min; all three confidence metrics should be null
+      or populated together
+    description: Maximum confidence score among all facts extracted from a document,
+      representing the highest certainty level assigned to any single extracted fact
   extracted_facts_confidence_mean:
-    business_rule: value must be a numeric type between 0 and 100 inclusive; should
-      be NULL when extracted_facts_count is 0
-    cross_column_relationship: must be >= extracted_facts_confidence_min and <= extracted_facts_confidence_max;
-      when extracted_facts_count = 1, this value should equal both min and max confidence
-      values
-    description: The average confidence score across all facts extracted from a source
-      document, measured as a percentage
+    business_rule: value must be a decimal between 0 and 100 inclusive; should be
+      greater than or equal to extracted_facts_confidence_min and less than or equal
+      to extracted_facts_confidence_max
+    cross_column_relationship: 'must satisfy: extracted_facts_confidence_min <= extracted_facts_confidence_mean
+      <= extracted_facts_confidence_max; should be null when extracted_facts_count
+      is 0 or null'
+    description: Average confidence score of all facts extracted from a source, calculated
+      as the arithmetic mean of individual fact confidence scores
   extracted_facts_confidence_min:
-    business_rule: value must be a numeric value between 0 and 100 inclusive; should
-      be less than or equal to extracted_facts_confidence_mean and extracted_facts_confidence_max;
-      should be null when extracted_facts_count is 0 or null
-    cross_column_relationship: must be <= extracted_facts_confidence_mean and <= extracted_facts_confidence_max;
-      should only have a value when extracted_facts_count > 0
+    business_rule: value must be numeric between 0 and 100, null only if extracted_facts_count
+      is 0 or null
+    cross_column_relationship: must be less than or equal to extracted_facts_confidence_mean
+      and extracted_facts_confidence_max; null when extracted_facts_count is 0
     description: The minimum confidence score among all facts extracted from a document,
-      representing the lowest certainty level of any individual extracted fact
+      representing the lowest certainty level for any individual extracted fact
   extracted_facts_count:
-    business_rule: value must be a non-negative integer; value should be greater than
-      0 when extracted_facts_confidence_mean is not null
-    cross_column_relationship: when extracted_facts_count > 0, extracted_facts_confidence_mean,
-      extracted_facts_confidence_min must not be null; count represents the number
-      of facts for which confidence metrics are calculated
-    description: The total number of facts extracted from a source document, representing
-      the count of discrete factual statements identified during the extraction process
+    business_rule: value must be a non-negative integer; value should be 0 or greater
+    cross_column_relationship: must be consistent with extracted_facts_confidence_mean
+      and extracted_facts_confidence_min (if count is 0, confidence metrics should
+      be null; if count > 0, confidence metrics should have values)
+    description: The total number of facts extracted from a source document or file
   extracted_facts_page_ref_max:
-    business_rule: value must be a positive integer; must be >= extracted_facts_page_ref_min
-      and >= extracted_facts_page_ref_mean
+    business_rule: value must be a positive integer; must be greater than or equal
+      to extracted_facts_page_ref_min and extracted_facts_page_ref_mean
     cross_column_relationship: must be >= extracted_facts_page_ref_min; must be >=
       extracted_facts_page_ref_mean; should correlate with entities_count (more entities
       may span more pages)
-    description: The maximum page reference number among all extracted facts in a
-      document, indicating the highest page number where facts were found
+    description: The maximum page reference number among all extracted facts in the
+      document, indicating the highest page number from which facts were extracted
   extracted_facts_page_ref_mean:
-    business_rule: value must be a positive number; should be between extracted_facts_page_ref_min
-      and extracted_facts_page_ref_max when both are present
-    cross_column_relationship: 'must satisfy: extracted_facts_page_ref_min <= extracted_facts_page_ref_mean
-      <= extracted_facts_page_ref_max; null only if extracted_facts_page_ref_min and
-      extracted_facts_page_ref_max are also null'
-    description: The arithmetic mean (average) of page reference numbers where facts
-      were extracted from a document
+    business_rule: value must be a positive decimal number, typically between extracted_facts_page_ref_min
+      and extracted_facts_page_ref_max
+    cross_column_relationship: must be >= extracted_facts_page_ref_min and <= extracted_facts_page_ref_max;
+      null only if both min and max are null
+    description: The mean (average) page reference number across all extracted facts
+      from a document, indicating the typical location where facts were found
   extracted_facts_page_ref_min:
     business_rule: Must be a positive integer greater than or equal to 1; must be
       less than or equal to extracted_facts_page_ref_max
     cross_column_relationship: Must be <= extracted_facts_page_ref_mean and <= extracted_facts_page_ref_max;
-      typically represents the earliest page where facts were found in the extraction
-      process
-    description: The minimum page number referenced across all facts extracted from
-      a document
+      represents the lower bound of the page reference range
+    description: The minimum page reference number from which facts were extracted
+      in the document
   extraction_model:
-    business_rule: value must be a non-empty string following the pattern of a valid
-      model identifier (e.g., 'gpt-4o-YYYY-MM-DD')
+    business_rule: value must be non-null string following pattern of model name and
+      version date (e.g., 'gpt-4o-YYYY-MM-DD')
     cross_column_relationship: correlates with processing_time_ms and token_count_input
-      as different models have varying performance characteristics and token consumption
-      rates
-    description: The AI model version used to perform the extraction process, identifying
-      the specific instance of the language model that generated the extracted data
+      as different models have varying performance characteristics and token usage
+      patterns
+    description: The specific version of the AI model used to perform the data extraction,
+      typically a GPT model identifier
   is_synthetic:
-    business_rule: value must be a boolean (True or False)
-    cross_column_relationship: related to doc_name which may indicate synthetic document
-      names when this flag is True; extracted_at timestamp indicates when synthetic
-      data was generated
+    business_rule: value must be boolean (True/False); non-null
+    cross_column_relationship: when is_synthetic is True, doc_name may reference generated/test
+      document names rather than real document sources
     description: Boolean flag indicating whether the extraction data was synthetically
-      generated rather than from a real document source
+      generated or derived from real documents
   token_count_input:
-    business_rule: value must be a positive integer greater than 0
-    cross_column_relationship: typically less than token_count_output for expansion
-      tasks or greater for summarization; must exist when extraction_model and processing_time_ms
-      are populated
+    business_rule: value must be positive integer greater than 0
+    cross_column_relationship: Must be populated when extraction_model is set; typically
+      less than token_count_output for summarization or greater for expansion tasks
     description: Number of tokens in the input text sent to the extraction model for
       processing
   token_count_output:
     business_rule: value must be a positive integer greater than 0
-    cross_column_relationship: token_count_output should be populated when extracted_at
-      is not null; typically compared with token_count_input to measure output verbosity
-    description: Number of tokens in the output generated during the extraction process
+    cross_column_relationship: should be present when extracted_at is not null; typically
+      smaller than token_count_input for summarization tasks or larger for expansion
+      tasks
+    description: Number of tokens generated in the output response from the extraction
+      process
 quality:
   specification:
     checks for extractions:
@@ -142,19 +135,17 @@ schema:
     required: true
     type: string
   doc_name:
-    business_rule: value must be a non-empty string; should typically contain alphanumeric
-      characters and may include hyphens, underscores, and spaces; commonly includes
-      year information in format YYYY or YYYY-YY
+    business_rule: value must be non-null string; should contain descriptive document
+      title; may include year identifier (YYYY or YYYY-YY format)
     description: Name or title of the source document from which data was extracted,
-      typically containing report titles, audit documents, or survey reports with
-      year identifiers
+      typically containing report titles, audit documents, or survey names with associated
+      years
     required: true
     type: string
   entities_count:
-    business_rule: Must be a non-negative integer; typically greater than 0 when extraction
-      is successful
-    description: The total count of distinct entities extracted from a document or
-      page range during the extraction process
+    business_rule: value must be a non-negative integer
+    description: The total count of distinct entities extracted from the document
+      during the extraction process
     maximum: 24.0
     minimum: 2.0
     required: true
@@ -165,57 +156,54 @@ schema:
     required: true
     type: string
   extracted_facts_confidence_max:
-    business_rule: value must be numeric between 0 and 100, typically >= extracted_facts_confidence_mean
-      and >= extracted_facts_confidence_min
-    description: The maximum confidence score among all extracted facts from a document,
-      representing the highest certainty level for any single fact extraction, measured
-      as a percentage
+    business_rule: value must be a number between 0 and 100 inclusive; should be greater
+      than or equal to extracted_facts_confidence_mean and extracted_facts_confidence_min
+    description: Maximum confidence score among all facts extracted from a document,
+      representing the highest certainty level assigned to any single extracted fact
     maximum: 1.0
     minimum: 0.0
     required: true
     type: number
   extracted_facts_confidence_mean:
-    business_rule: value must be a numeric type between 0 and 100 inclusive; should
-      be NULL when extracted_facts_count is 0
-    description: The average confidence score across all facts extracted from a source
-      document, measured as a percentage
+    business_rule: value must be a decimal between 0 and 100 inclusive; should be
+      greater than or equal to extracted_facts_confidence_min and less than or equal
+      to extracted_facts_confidence_max
+    description: Average confidence score of all facts extracted from a source, calculated
+      as the arithmetic mean of individual fact confidence scores
     maximum: 1.0
     minimum: 0.0
     required: true
     type: number
   extracted_facts_confidence_min:
-    business_rule: value must be a numeric value between 0 and 100 inclusive; should
-      be less than or equal to extracted_facts_confidence_mean and extracted_facts_confidence_max;
-      should be null when extracted_facts_count is 0 or null
+    business_rule: value must be numeric between 0 and 100, null only if extracted_facts_count
+      is 0 or null
     description: The minimum confidence score among all facts extracted from a document,
-      representing the lowest certainty level of any individual extracted fact
+      representing the lowest certainty level for any individual extracted fact
     maximum: 1.0
     minimum: 0.0
     required: true
     type: number
   extracted_facts_count:
-    business_rule: value must be a non-negative integer; value should be greater than
-      0 when extracted_facts_confidence_mean is not null
-    description: The total number of facts extracted from a source document, representing
-      the count of discrete factual statements identified during the extraction process
+    business_rule: value must be a non-negative integer; value should be 0 or greater
+    description: The total number of facts extracted from a source document or file
     maximum: 13.0
     minimum: 3.0
     required: true
     type: integer
   extracted_facts_page_ref_max:
-    business_rule: value must be a positive integer; must be >= extracted_facts_page_ref_min
-      and >= extracted_facts_page_ref_mean
-    description: The maximum page reference number among all extracted facts in a
-      document, indicating the highest page number where facts were found
+    business_rule: value must be a positive integer; must be greater than or equal
+      to extracted_facts_page_ref_min and extracted_facts_page_ref_mean
+    description: The maximum page reference number among all extracted facts in the
+      document, indicating the highest page number from which facts were extracted
     maximum: 50.0
     minimum: 5.0
     required: true
     type: integer
   extracted_facts_page_ref_mean:
-    business_rule: value must be a positive number; should be between extracted_facts_page_ref_min
-      and extracted_facts_page_ref_max when both are present
-    description: The arithmetic mean (average) of page reference numbers where facts
-      were extracted from a document
+    business_rule: value must be a positive decimal number, typically between extracted_facts_page_ref_min
+      and extracted_facts_page_ref_max
+    description: The mean (average) page reference number across all extracted facts
+      from a document, indicating the typical location where facts were found
     maximum: 39.8333
     minimum: 4.1429
     required: true
@@ -223,23 +211,23 @@ schema:
   extracted_facts_page_ref_min:
     business_rule: Must be a positive integer greater than or equal to 1; must be
       less than or equal to extracted_facts_page_ref_max
-    description: The minimum page number referenced across all facts extracted from
-      a document
+    description: The minimum page reference number from which facts were extracted
+      in the document
     maximum: 35.0
     minimum: 1.0
     required: true
     type: integer
   extraction_model:
-    business_rule: value must be a non-empty string following the pattern of a valid
-      model identifier (e.g., 'gpt-4o-YYYY-MM-DD')
-    description: The AI model version used to perform the extraction process, identifying
-      the specific instance of the language model that generated the extracted data
+    business_rule: value must be non-null string following pattern of model name and
+      version date (e.g., 'gpt-4o-YYYY-MM-DD')
+    description: The specific version of the AI model used to perform the data extraction,
+      typically a GPT model identifier
     required: true
     type: string
   is_synthetic:
-    business_rule: value must be a boolean (True or False)
+    business_rule: value must be boolean (True/False); non-null
     description: Boolean flag indicating whether the extraction data was synthetically
-      generated rather than from a real document source
+      generated or derived from real documents
     required: false
     type: string
   processing_time_ms:
@@ -258,7 +246,7 @@ schema:
     required: true
     type: string
   token_count_input:
-    business_rule: value must be a positive integer greater than 0
+    business_rule: value must be positive integer greater than 0
     description: Number of tokens in the input text sent to the extraction model for
       processing
     maximum: 7982.0
@@ -267,7 +255,8 @@ schema:
     type: integer
   token_count_output:
     business_rule: value must be a positive integer greater than 0
-    description: Number of tokens in the output generated during the extraction process
+    description: Number of tokens generated in the output response from the extraction
+      process
     maximum: 2147.0
     minimum: 447.0
     required: true
