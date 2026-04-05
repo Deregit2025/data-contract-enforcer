@@ -12,6 +12,7 @@ from orchestration.dagster_pipeline.assets import (
     ai_metrics,
     violation_attribution,
     enforcer_report,
+    kafka_publish
 )
 from orchestration.dagster_pipeline.sensors import output_file_sensor
 
@@ -23,6 +24,7 @@ all_assets = [
     ai_metrics,
     violation_attribution,
     enforcer_report,
+    kafka_publish
 ]
 
 # ── Job: run the full pipeline ─────────────────────────────────────────────────
